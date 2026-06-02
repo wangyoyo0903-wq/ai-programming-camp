@@ -1,0 +1,29 @@
+# 依赖和构建
+node_modules/
+tmp/
+
+# 备份文件
+*.backup.*
+*~
+
+# 开发脚本和工具（用户不需要）
+*.ps1
+*.bat
+tts-generator.html
+
+# 编辑器配置
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# 临时文件和日志
+*.log
+*.tmp
+.env
+.env.local
+
+# TTS生成中间文件
+tts_only_new/

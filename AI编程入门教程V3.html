@@ -1,0 +1,4804 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI编程挑战入门</title>
+  <style>
+    :root {
+      --bg: #070b16;
+      --panel: rgba(12, 19, 36, 0.82);
+      --panel-strong: rgba(16, 27, 50, 0.94);
+      --line: rgba(135, 177, 255, 0.18);
+      --line-strong: rgba(135, 177, 255, 0.36);
+      --text: #eaf1ff;
+      --muted: #9fb0d0;
+      --dim: #6f7f9e;
+      --brand: #5dd6ff;
+      --brand-2: #8bffbf;
+      --gold: #ffd66b;
+      --bad: #ff7e8b;
+      --good: #74f3a5;
+      --warn: #ffbf69;
+      --shadow: 0 20px 70px rgba(0, 0, 0, 0.42);
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      min-height: 100vh;
+      overflow-x: hidden;
+      color: var(--text);
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", Arial, sans-serif;
+      background:
+        linear-gradient(180deg, rgba(7, 11, 22, 0.55), rgba(7, 11, 22, 0.96)),
+        url("assets/images/ui/background_main.png") center/cover fixed,
+        var(--bg);
+      line-height: 1.65;
+    }
+
+    button, input, textarea { font: inherit; }
+    button { border: 0; }
+    a { color: inherit; }
+
+    .app-shell { min-height: 100vh; padding: 18px; }
+    .hidden { display: none !important; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 12px 14px;
+      margin: 0 auto 16px;
+      max-width: 1440px;
+      background: rgba(7, 11, 22, 0.78);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.22);
+    }
+    .brand-block { display: flex; align-items: center; gap: 12px; min-width: 250px; }
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+      display: grid;
+      place-items: center;
+      color: #07111f;
+      font-weight: 900;
+      box-shadow: 0 0 24px rgba(93, 214, 255, 0.32);
+      animation: brandPulse 4s ease-in-out infinite;
+    }
+    .brand-title { font-size: 16px; font-weight: 800; letter-spacing: 0; }
+    .brand-subtitle { font-size: 12px; color: var(--muted); }
+
+    .status-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 34px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(15, 26, 48, 0.7);
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .status-pill strong { color: var(--text); font-weight: 700; }
+    .status-pill.good { color: var(--good); border-color: rgba(116, 243, 165, 0.28); }
+
+    .btn {
+      position: relative;
+      overflow: hidden;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 38px;
+      padding: 9px 14px;
+      color: #06101d;
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+      border-radius: var(--radius);
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform .18s ease, filter .18s ease, opacity .18s ease;
+      white-space: nowrap;
+    }
+    .btn::after {
+      content: "";
+      position: absolute;
+      inset: -50% auto -50% -80%;
+      width: 42%;
+      transform: rotate(18deg);
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .36), transparent);
+      opacity: 0;
+      pointer-events: none;
+    }
+    .btn:hover::after { animation: buttonShine .72s ease; }
+    .btn:hover { transform: translateY(-1px); filter: brightness(1.07); }
+    .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+    .btn.secondary {
+      color: var(--text);
+      background: rgba(19, 33, 60, 0.92);
+      border: 1px solid var(--line-strong);
+    }
+    .btn.ghost {
+      color: var(--muted);
+      background: transparent;
+      border: 1px solid var(--line);
+    }
+    .btn.warn {
+      color: #150c00;
+      background: linear-gradient(135deg, #ffd66b, #ff9f6e);
+    }
+
+    .gate {
+      min-height: calc(100vh - 36px);
+      display: grid;
+      place-items: center;
+      padding: 26px 0;
+    }
+    .gate-layout {
+      width: min(1160px, 100%);
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(340px, .9fr);
+      gap: 18px;
+      align-items: stretch;
+    }
+    .hero-panel, .key-panel, .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+    }
+    .hero-panel {
+      position: relative;
+      min-height: 620px;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(7, 11, 22, 0.08), rgba(7, 11, 22, 0.94)),
+        url("assets/images/ui/background_main.png") center/cover;
+    }
+    .hero-panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(115deg, transparent 0 40%, rgba(93, 214, 255, .14) 47%, transparent 56%),
+        repeating-linear-gradient(180deg, rgba(255,255,255,.035) 0 1px, transparent 1px 7px);
+      mix-blend-mode: screen;
+      opacity: .42;
+      animation: heroScan 8s linear infinite;
+    }
+    .hero-content { z-index: 1; }
+    .hero-content {
+      position: absolute;
+      left: 28px;
+      right: 28px;
+      bottom: 28px;
+      display: grid;
+      gap: 18px;
+    }
+    .eyebrow {
+      display: inline-flex;
+      width: fit-content;
+      padding: 5px 10px;
+      border: 1px solid rgba(93, 214, 255, .28);
+      border-radius: 999px;
+      color: var(--brand);
+      background: rgba(93, 214, 255, .08);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    h1 {
+      font-size: clamp(34px, 5vw, 64px);
+      line-height: 1.04;
+      letter-spacing: 0;
+      max-width: 760px;
+    }
+    .hero-copy { max-width: 720px; color: #c9d8f5; font-size: 16px; }
+    .hero-metrics { display: flex; flex-wrap: wrap; gap: 10px; }
+    .metric {
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(7, 11, 22, .52);
+      min-width: 126px;
+    }
+    .metric strong { display: block; font-size: 18px; }
+    .metric span { color: var(--muted); font-size: 12px; }
+
+    .key-panel { padding: 22px; display: grid; gap: 18px; align-content: start; }
+    .mentor-card {
+      display: grid;
+      grid-template-columns: 104px minmax(0, 1fr);
+      gap: 14px;
+      align-items: center;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(12, 19, 36, .72);
+    }
+    .mentor-card img { width: 104px; height: 104px; object-fit: contain; }
+    .mentor-card h2 { font-size: 20px; margin-bottom: 4px; }
+    .mentor-card p { color: var(--muted); font-size: 13px; }
+
+    .field { display: grid; gap: 7px; }
+    .field label { color: var(--muted); font-size: 13px; font-weight: 700; }
+    .field input, .field textarea {
+      width: 100%;
+      color: var(--text);
+      background: rgba(5, 10, 22, .82);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 11px 12px;
+      outline: none;
+      transition: border-color .18s ease, box-shadow .18s ease;
+    }
+    .field select {
+      width: 100%;
+      color: var(--text);
+      background: rgba(5, 10, 22, .82);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 11px 12px;
+      outline: none;
+    }
+    .field textarea { min-height: 136px; resize: vertical; }
+    .field input:focus, .field textarea:focus {
+      border-color: rgba(93, 214, 255, .7);
+      box-shadow: 0 0 0 3px rgba(93, 214, 255, .1);
+    }
+    .checkline { display: flex; gap: 8px; align-items: center; color: var(--muted); font-size: 13px; }
+    .checkline input { width: 16px; height: 16px; accent-color: var(--brand); }
+    .gate-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .notice {
+      padding: 12px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: rgba(93, 214, 255, .06);
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .notice.error { border-color: rgba(255, 126, 139, .32); background: rgba(255, 126, 139, .08); color: #ffc3ca; }
+    .notice.success { border-color: rgba(116, 243, 165, .3); background: rgba(116, 243, 165, .08); color: #c6ffd8; }
+    .input-with-hint {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .input-with-hint input {
+      flex: 1;
+    }
+    .hint-icon-btn {
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, rgba(255,191,105,0.15), rgba(255,107,107,0.15));
+      color: #ffa500;
+      font-size: 18px;
+      cursor: pointer;
+      transition: all .2s;
+      flex-shrink: 0;
+    }
+    .hint-icon-btn:hover {
+      background: linear-gradient(135deg, #ff6b6b, #ffa500);
+      color: white;
+      transform: scale(1.1);
+    }
+
+    .key-guide-popup {
+      display: none;
+      position: fixed;
+      top: var(--key-popup-top, 24px);
+      left: var(--key-popup-left, 24px);
+      z-index: 100;
+      background: rgba(9, 16, 30, 0.98);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,165,0,0.4);
+      border-radius: 12px;
+      padding: 18px;
+      width: min(360px, calc(100vw - 28px));
+      box-shadow: 0 24px 56px rgba(0,0,0,0.6), 0 0 40px rgba(255,165,0,0.2);
+      animation: popupFadeIn .25s ease;
+    }
+    .key-guide-popup.is-visible {
+      display: block;
+    }
+    .key-guide-popup::before {
+      content: "";
+      position: absolute;
+      top: 20px;
+      left: -7px;
+      width: 12px;
+      height: 12px;
+      background: rgba(9, 16, 30, 0.98);
+      border-left: 1px solid rgba(255,165,0,0.4);
+      border-bottom: 1px solid rgba(255,165,0,0.4);
+      transform: rotate(45deg);
+    }
+    .key-guide-popup.from-left::before {
+      left: auto;
+      right: -7px;
+      border-left: 0;
+      border-bottom: 0;
+      border-right: 1px solid rgba(255,165,0,0.4);
+      border-top: 1px solid rgba(255,165,0,0.4);
+    }
+    @keyframes popupFadeIn {
+      from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .popup-content {
+      position: relative;
+    }
+    .popup-content h4 {
+      color: #ffa500;
+      font-size: 18px;
+      margin-bottom: 12px;
+    }
+    .popup-content p {
+      color: var(--text);
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+    .popup-content ul {
+      list-style: none;
+      padding: 0;
+      margin: 12px 0;
+    }
+    .popup-content li {
+      padding: 6px 0;
+      color: var(--text);
+      font-size: 14px;
+    }
+    .guide-btn-sm {
+      display: inline-block;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ff6b6b, #ffa500);
+      color: #1a1a2e;
+      border-radius: 999px;
+      text-decoration: none;
+      margin-top: 12px;
+      transition: transform .2s;
+    }
+    .guide-btn-sm:hover {
+      transform: translateY(-2px) scale(1.05);
+    }
+    .popup-note {
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--dim);
+      text-align: center;
+    }
+    .popup-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 22px;
+      cursor: pointer;
+      border-radius: 50%;
+    }
+    .popup-close:hover {
+      background: rgba(255,255,255,0.1);
+      color: var(--text);
+    }
+    .mode-compare {
+      display: grid;
+      gap: 8px;
+    }
+    .compare-row {
+      display: grid;
+      grid-template-columns: 92px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      padding: 8px;
+      border-radius: var(--radius);
+      background: rgba(5, 10, 22, .36);
+    }
+    .compare-row strong { color: var(--text); }
+
+    .senior-intro {
+      padding: 14px;
+      border: 1px solid rgba(255, 214, 107, .25);
+      border-radius: var(--radius);
+      background: rgba(255, 214, 107, .07);
+      display: grid;
+      grid-template-columns: 76px minmax(0, 1fr);
+      gap: 12px;
+      align-items: center;
+    }
+    .senior-intro img { width: 76px; height: 76px; object-fit: contain; border-radius: 8px; }
+    .senior-intro h3 { font-size: 15px; margin-bottom: 4px; color: #fff4cf; }
+    .senior-intro p { color: #ffe6a4; font-size: 13px; }
+
+    .mode-select {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 34px;
+      padding: 4px 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(15, 26, 48, 0.7);
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .mode-select select {
+      color: var(--text);
+      background: rgba(5, 10, 22, .82);
+      border: 1px solid rgba(135, 177, 255, .18);
+      border-radius: 999px;
+      padding: 4px 8px;
+      outline: none;
+    }
+
+    .main-layout {
+      width: min(1500px, calc(100vw - 36px));
+      max-width: 1500px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 72px minmax(0, 1fr) minmax(320px, 390px);
+      gap: 16px;
+      align-items: start;
+      transition: grid-template-columns .28s ease;
+    }
+    .main-layout.rail-preview {
+      grid-template-columns: 280px minmax(0, 1fr) minmax(320px, 390px);
+    }
+    .main-layout.rail-expanded {
+      grid-template-columns: 280px minmax(0, 1fr) minmax(320px, 390px);
+    }
+    .main-layout.rail-collapsed {
+      grid-template-columns: 72px minmax(0, 1fr) minmax(320px, 390px);
+    }
+    .panel { padding: 16px; }
+    .panel-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .panel-title h2, .panel-title h3 { font-size: 16px; }
+    .panel-title span { color: var(--muted); font-size: 12px; }
+
+    .left-rail {
+      position: sticky;
+      top: 84px;
+      width: 72px;
+      min-height: calc(100vh - 110px);
+      transition: width .3s cubic-bezier(0.4, 0, 0.2, 1), filter .3s ease;
+      overflow: hidden;
+      z-index: 25;
+    }
+    .left-rail.rail-preview,
+    .left-rail.rail-locked,
+    .left-rail.rail-expanded {
+      width: 280px;
+    }
+    .left-rail:hover,
+    .left-rail:focus-within {
+      width: 280px;
+    }
+    .left-rail .drawer-title,
+    .left-rail .drawer-subtitle,
+    .left-rail .level-node h4,
+    .left-rail .level-node p,
+    .left-rail .level-score,
+    .left-rail .stars,
+    .left-rail .badge-grid {
+      opacity: 0;
+      transform: translateX(-8px);
+      transition: opacity .2s ease, transform .2s ease;
+      pointer-events: none;
+    }
+    .left-rail:hover .drawer-title,
+    .left-rail:focus-within .drawer-title,
+    .left-rail.rail-preview .drawer-title,
+    .left-rail.rail-expanded .drawer-title,
+    .left-rail.rail-locked .drawer-title,
+    .left-rail:hover .drawer-subtitle,
+    .left-rail:focus-within .drawer-subtitle,
+    .left-rail.rail-preview .drawer-subtitle,
+    .left-rail.rail-expanded .drawer-subtitle,
+    .left-rail.rail-locked .drawer-subtitle,
+    .left-rail:hover .level-node h4,
+    .left-rail:focus-within .level-node h4,
+    .left-rail.rail-preview .level-node h4,
+    .left-rail.rail-expanded .level-node h4,
+    .left-rail.rail-locked .level-node h4,
+    .left-rail:hover .level-node p,
+    .left-rail:focus-within .level-node p,
+    .left-rail.rail-preview .level-node p,
+    .left-rail.rail-expanded .level-node p,
+    .left-rail.rail-locked .level-node p,
+    .left-rail:hover .level-score,
+    .left-rail:focus-within .level-score,
+    .left-rail.rail-preview .level-score,
+    .left-rail.rail-expanded .level-score,
+    .left-rail.rail-locked .level-score,
+    .left-rail:hover .stars,
+    .left-rail:focus-within .stars,
+    .left-rail.rail-preview .stars,
+    .left-rail.rail-expanded .stars,
+    .left-rail.rail-locked .stars,
+    .left-rail:hover .badge-grid,
+    .left-rail:focus-within .badge-grid,
+    .left-rail.rail-preview .badge-grid,
+    .left-rail.rail-expanded .badge-grid,
+    .left-rail.rail-locked .badge-grid {
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: auto;
+    }
+    .left-rail .panel {
+      width: 72px;
+      min-height: calc(100vh - 110px);
+      padding: 7px;
+      overflow: hidden;
+      background: rgba(9, 16, 30, .84);
+      backdrop-filter: blur(14px);
+      transition: width .3s ease, box-shadow .3s ease, border-color .3s ease;
+      box-sizing: border-box;
+    }
+    .left-rail:hover .panel,
+    .left-rail:focus-within .panel,
+    .left-rail.rail-preview .panel {
+      width: 280px;
+      padding: 10px;
+    }
+    .left-rail.rail-locked .panel,
+    .left-rail.rail-expanded .panel {
+      width: 280px;
+      padding: 10px;
+    }
+    .left-rail.rail-collapsed:not(:hover):not(:focus-within) .rail-head {
+      grid-template-columns: 58px;
+    }
+    .left-rail.rail-collapsed:not(:hover):not(:focus-within) .rail-head > div:last-child {
+      display: none;
+    }
+    .left-rail:hover .panel,
+    .left-rail:focus-within .panel,
+    .left-rail.rail-expanded .panel {
+      box-shadow: 18px 0 48px rgba(0, 0, 0, .26);
+      border-color: var(--line-strong);
+    }
+    .rail-section + .rail-section { margin-top: 12px; }
+    .rail-head {
+      display: grid;
+      grid-template-columns: 58px minmax(0, 1fr);
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      position: relative;
+    }
+    .rail-lock-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: rgba(15, 26, 48, 0.72);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 14px;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity .2s ease, background .2s ease, color .2s ease;
+      z-index: 10;
+    }
+    .left-rail:hover .rail-lock-btn { opacity: 1; }
+    .rail-lock-btn:hover {
+      background: rgba(93, 214, 255, 0.12);
+      color: var(--brand);
+      border-color: var(--brand);
+    }
+    .rail-icon {
+      width: 58px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      color: var(--brand-2);
+      background: rgba(93, 214, 255, .08);
+      flex-shrink: 0;
+    }
+    .level-map {
+      display: grid;
+      gap: 10px;
+      width: 100%;
+      min-width: 0;
+    }
+    .drawer-title { font-size: 15px; }
+    .drawer-subtitle { color: var(--muted); font-size: 12px; }
+    .level-node {
+      display: grid;
+      grid-template-columns: 58px minmax(0, 1fr);
+      width: 100%;
+      gap: 10px;
+      align-items: center;
+      padding: 9px;
+      box-sizing: border-box;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(8, 14, 27, .62);
+      cursor: pointer;
+      transition: border-color .18s ease, background .18s ease, transform .18s ease;
+    }
+    .level-node:hover { border-color: var(--line-strong); transform: translateY(-1px); }
+    .level-node.active { border-color: rgba(93, 214, 255, .62); background: rgba(93, 214, 255, .08); }
+    .level-node.locked { opacity: .45; cursor: not-allowed; }
+    .level-node.done { border-color: rgba(116, 243, 165, .38); }
+
+    .left-rail.rail-collapsed:not(:hover):not(:focus-within) .level-map {
+      width: 58px;
+    }
+    .left-rail.rail-collapsed:not(:hover):not(:focus-within) .level-node {
+      width: 58px;
+      height: 58px;
+      grid-template-columns: 58px;
+      gap: 0;
+      padding: 0;
+      justify-items: center;
+    }
+    .left-rail.rail-collapsed:not(:hover):not(:focus-within) .level-icon-wrap {
+      width: 58px;
+      height: 58px;
+    }
+
+    .level-node.state-locked {
+      opacity: 0.5;
+      filter: grayscale(100%);
+    }
+    .level-node.state-locked .level-icon-wrap {
+      filter: brightness(0.5);
+    }
+    .level-node.state-locked:hover {
+      opacity: 0.7;
+    }
+
+    .level-node.state-active {
+      border-color: rgba(93,214,255,0.4);
+      background: rgba(93,214,255,0.06);
+    }
+    .level-node.state-active .level-icon-wrap {
+      box-shadow: 0 0 12px rgba(93,214,255,0.3);
+    }
+
+    .level-node.state-completed {
+      border-color: rgba(116,243,165,0.4);
+      background: rgba(116,243,165,0.06);
+    }
+    .level-node.state-completed .level-icon-wrap {
+      filter: brightness(1.1) saturate(1.2);
+      box-shadow: 0 0 16px rgba(116,243,165,0.4);
+    }
+
+    .level-node.state-perfect {
+      border-color: rgba(255,214,107,0.6);
+      background: rgba(255,214,107,0.08);
+      animation: perfectPulse 2s ease-in-out infinite;
+    }
+    .level-node.state-perfect .level-icon-wrap {
+      box-shadow: 0 0 20px rgba(255,214,107,0.6), 0 0 40px rgba(255,214,107,0.3);
+      filter: brightness(1.2) saturate(1.3);
+    }
+
+    @keyframes perfectPulse {
+      0%, 100% { box-shadow: 0 0 20px rgba(255,214,107,0.6); }
+      50% { box-shadow: 0 0 30px rgba(255,214,107,0.9), 0 0 50px rgba(255,214,107,0.5); }
+    }
+
+    .state-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      font-size: 11px;
+      border-radius: 999px;
+      background: rgba(93,214,255,0.12);
+      color: var(--brand);
+      margin-top: 4px;
+    }
+
+    .hints-system {
+      margin-top: 14px;
+      display: grid;
+      gap: 10px;
+    }
+    .hint {
+      padding: 12px;
+      border-left: 3px solid var(--brand);
+      background: rgba(93,214,255,0.06);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .hint.hint-level-1 {
+      border-color: var(--brand);
+    }
+    .hint.hint-level-2 {
+      border-color: var(--warn);
+      background: rgba(255,191,105,0.06);
+    }
+    .hint.hint-level-3.example {
+      border-color: var(--brand-2);
+      background: rgba(139,255,191,0.06);
+    }
+    .hint-icon {
+      margin-right: 6px;
+      font-size: 15px;
+    }
+    .reveal-hint-btn {
+      align-self: flex-start;
+      font-size: 12px;
+    }
+    .example-content {
+      margin-top: 8px;
+      padding: 10px;
+      background: rgba(5,10,22,.5);
+      border-radius: var(--radius);
+      font-style: italic;
+      color: var(--muted);
+    }
+    .level-icon-wrap {
+      width: 58px;
+      height: 58px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(135, 177, 255, .16);
+      border-radius: var(--radius);
+      background: rgba(4, 8, 18, .46);
+      position: relative;
+    }
+    .level-node img { width: 46px; height: 46px; object-fit: contain; }
+    .level-node-icon {
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      color: var(--brand-2);
+      font-size: 18px;
+      font-weight: 800;
+      background: rgba(93, 214, 255, .10);
+      border: 1px solid rgba(93, 214, 255, .22);
+    }
+    .level-node.active img { animation: nodeFloat 2.4s ease-in-out infinite; }
+    .level-node h4 { font-size: 13px; line-height: 1.25; }
+    .level-node p { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .level-score {
+      display: inline-flex;
+      gap: 4px;
+      align-items: center;
+      margin-top: 5px;
+      color: #d9e8ff;
+      font-size: 11px;
+    }
+    .level-score strong { color: var(--brand-2); }
+    .stars { color: var(--gold); font-size: 12px; margin-top: 4px; letter-spacing: 0; }
+
+    .mission-hero {
+      min-height: 220px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+      position: relative;
+      margin-bottom: 14px;
+      background-size: cover;
+      background-position: center;
+    }
+    .mission-hero.exam-hero {
+      background: linear-gradient(135deg, rgba(10, 18, 34, .92), rgba(14, 32, 54, .78));
+    }
+    .mission-hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 18% 22%, rgba(139, 255, 191, .16), transparent 30%);
+      opacity: .8;
+      animation: softBreathe 5.5s ease-in-out infinite;
+    }
+    .mission-hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(7, 11, 22, .92), rgba(7, 11, 22, .44), rgba(7, 11, 22, .74));
+    }
+    .mission-hero-content {
+      position: relative;
+      z-index: 1;
+      min-height: 220px;
+      padding: 22px;
+      display: grid;
+      align-content: end;
+      gap: 10px;
+    }
+    .mission-hero h2 { font-size: clamp(26px, 4vw, 42px); line-height: 1.08; max-width: 720px; }
+    .mission-hero p { color: #c8d7f4; max-width: 760px; }
+    .mission-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+    .tag {
+      display: inline-flex;
+      padding: 4px 9px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(7, 11, 22, .54);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .mission-grid { display: block; }
+    .section-block {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(9, 16, 30, .7);
+      margin-bottom: 14px;
+    }
+    .section-block[open] {
+      border-color: rgba(93, 214, 255, .34);
+      background: rgba(10, 18, 34, .84);
+    }
+    .section-block.lesson-step:not([open]) {
+      border-color: rgba(135, 177, 255, .12);
+      background: rgba(8, 14, 26, .48);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .015);
+    }
+    .section-block.lesson-step:not([open]):hover {
+      border-color: rgba(93, 214, 255, .3);
+      background: rgba(12, 22, 42, .66);
+    }
+    .section-block summary {
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--text);
+      font-size: 17px;
+      font-weight: 800;
+    }
+    .section-block.lesson-step:not([open]) summary { color: #8fa2c0; }
+    .summary-title { min-width: 0; }
+    .summary-hint {
+      margin-left: auto;
+      padding: 3px 8px;
+      border: 1px solid rgba(135, 177, 255, .18);
+      border-radius: 999px;
+      color: var(--dim);
+      background: rgba(135, 177, 255, .07);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .section-block[open] .summary-hint { display: none; }
+    .section-block summary::-webkit-details-marker { display: none; }
+    .section-block summary::after {
+      content: "";
+      flex: 0 0 auto;
+      width: 10px;
+      height: 10px;
+      border-right: 2px solid var(--brand);
+      border-bottom: 2px solid var(--brand);
+      transform: rotate(45deg);
+      transition: transform .18s ease, opacity .18s ease;
+      opacity: .8;
+    }
+    .section-block[open] summary::after { transform: rotate(225deg); }
+    .section-block h3 { font-size: 17px; margin-bottom: 10px; }
+    .detail-body { margin-top: 12px; }
+    .section-block p, .section-block li { color: #cbd8ef; }
+    .section-block ul, .section-block ol { margin-left: 20px; display: grid; gap: 6px; }
+    .section-actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 12px; }
+    .deep-lesson {
+      display: grid;
+      gap: 14px;
+    }
+    .lesson-card {
+      padding: 14px;
+      border: 1px solid rgba(135, 177, 255, .14);
+      border-radius: var(--radius);
+      background: rgba(5, 10, 22, .52);
+    }
+    .lesson-card h4 {
+      font-size: 14px;
+      margin-bottom: 8px;
+      color: #e8f2ff;
+    }
+    .lesson-card p { margin-bottom: 6px; }
+    .lesson-card p:last-child { margin-bottom: 0; }
+    .lesson-example {
+      padding: 12px;
+      border-radius: var(--radius);
+      background: rgba(139, 255, 191, .07);
+      border: 1px solid rgba(139, 255, 191, .2);
+      color: #dfffee;
+    }
+    .guide-panel {
+      margin-bottom: 14px;
+      padding: 14px;
+      border: 1px solid rgba(255, 214, 107, .24);
+      border-radius: var(--radius);
+      background: rgba(255, 214, 107, .07);
+    }
+    .guide-panel h3 { font-size: 16px; margin-bottom: 8px; color: #fff2c7; }
+    .guide-panel p { color: #ffe8ae; }
+    .guide-actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 10px; }
+    .mentor-guide {
+      margin-bottom: 12px;
+      padding: 12px;
+      border: 1px solid rgba(255, 214, 107, .24);
+      border-radius: var(--radius);
+      background: rgba(255, 214, 107, .07);
+    }
+    .mentor-guide h3 { font-size: 14px; color: #fff2c7; margin-bottom: 6px; }
+    .mentor-guide p { color: #ffe8ae; font-size: 13px; }
+    .mentor-guide .guide-actions { margin-top: 8px; }
+    .voice-panel {
+      margin-bottom: 14px;
+      padding: 14px;
+      border: 1px solid rgba(93, 214, 255, .26);
+      border-radius: var(--radius);
+      background: rgba(93, 214, 255, .07);
+    }
+    .voice-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .voice-head h3 { font-size: 16px; color: #dff4ff; }
+    .voice-state { color: var(--muted); font-size: 12px; white-space: nowrap; }
+    .voice-text {
+      color: #d9e8ff;
+      white-space: pre-wrap;
+      max-height: 230px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+    .voice-actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 12px; }
+    .assignment-result {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      background: rgba(5, 10, 22, .6);
+      white-space: pre-wrap;
+    }
+    .assignment-result.pass { border-color: rgba(116, 243, 165, .32); color: #d4ffe1; background: rgba(116, 243, 165, .08); }
+    .assignment-result.fail { border-color: rgba(255, 191, 105, .32); color: #ffe3b6; background: rgba(255, 191, 105, .08); }
+    .mentor-score-card {
+      margin-top: 12px;
+      padding: 12px;
+      border: 1px solid rgba(139, 255, 191, .24);
+      border-radius: var(--radius);
+      background: rgba(139, 255, 191, .07);
+      color: #ddffe9;
+    }
+    .mentor-score-card strong { color: var(--brand-2); }
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .score-tile {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(5, 10, 22, .55);
+    }
+    .score-tile strong { display: block; color: #fff2c7; font-size: 18px; }
+    .score-tile span { color: var(--muted); font-size: 12px; }
+
+    .quiz-list { display: grid; gap: 12px; }
+    .quiz-question {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(5, 10, 22, .58);
+    }
+    .quiz-question h4 { margin-bottom: 10px; font-size: 15px; }
+    .option-list { display: grid; gap: 8px; }
+    .quiz-option {
+      display: grid;
+      grid-template-columns: 24px minmax(0, 1fr);
+      gap: 8px;
+      align-items: start;
+      padding: 10px;
+      border: 1px solid rgba(135, 177, 255, .14);
+      border-radius: var(--radius);
+      color: #cad7ee;
+      background: rgba(15, 26, 48, .52);
+      cursor: pointer;
+      transition: border-color .18s ease, background .18s ease;
+    }
+    .quiz-option:hover { border-color: var(--line-strong); }
+    .quiz-option input { margin-top: 4px; accent-color: var(--brand); }
+    .quiz-option.correct { border-color: rgba(116, 243, 165, .5); background: rgba(116, 243, 165, .09); }
+    .quiz-option.wrong { border-color: rgba(255, 126, 139, .5); background: rgba(255, 126, 139, .09); }
+    .question-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .exam-answer-box {
+      width: 100%;
+      max-width: none;
+      min-height: 150px;
+      padding: 14px;
+      margin-top: 12px;
+      resize: vertical;
+      font-size: 14px;
+      line-height: 1.65;
+      color: var(--text);
+      background: rgba(5, 10, 22, 0.65);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-sizing: border-box;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .exam-answer-box:focus {
+      outline: none;
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(93, 214, 255, 0.15);
+    }
+    .exam-answer-box::placeholder { color: var(--dim); }
+    .exam-answer-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .quiz-feedback {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: var(--radius);
+      color: var(--muted);
+      background: rgba(93, 214, 255, .07);
+      border: 1px solid rgba(93, 214, 255, .18);
+      font-size: 13px;
+    }
+    .quiz-summary {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: rgba(9, 16, 30, .72);
+    }
+    .quiz-summary.pass { color: #d4ffe1; border-color: rgba(116, 243, 165, .32); background: rgba(116, 243, 165, .08); }
+    .quiz-summary.fail { color: #ffe0e5; border-color: rgba(255, 126, 139, .32); background: rgba(255, 126, 139, .08); }
+    .result-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 160;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      min-height: 100dvh;
+      background: rgba(3, 7, 14, .62);
+      backdrop-filter: blur(8px);
+    }
+    .result-modal.show { display: flex; }
+    .result-dialog {
+      width: min(460px, 100%);
+      padding: 20px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: rgba(9, 16, 30, .96);
+      box-shadow: var(--shadow);
+    }
+    .result-dialog h3 { font-size: 22px; margin-bottom: 8px; }
+    .result-dialog p { color: #d6e6ff; line-height: 1.7; }
+    .result-score {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 14px 0;
+    }
+    .result-score div {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(5, 10, 22, .54);
+    }
+    .result-score strong {
+      display: block;
+      color: #fff2c7;
+      font-size: 20px;
+    }
+    .result-score span { color: var(--muted); font-size: 12px; }
+    .result-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+    .exam-panel {
+      padding: 16px;
+      border: 1px solid rgba(255, 213, 122, .32);
+      border-radius: var(--radius);
+      background: rgba(255, 213, 122, .07);
+      margin-bottom: 14px;
+    }
+    .exam-paper {
+      display: grid;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .mentor-panel { position: sticky; top: 84px; }
+    .mentor-portrait {
+      position: relative;
+      display: grid;
+      justify-items: center;
+      padding: 10px 10px 0;
+      min-height: 250px;
+      background:
+        radial-gradient(circle at 50% 40%, rgba(93, 214, 255, .16), transparent 48%),
+        rgba(5, 10, 22, .42);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+    .mentor-portrait::after {
+      content: "";
+      position: absolute;
+      inset: auto 18% 0;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(93, 214, 255, .18);
+      filter: blur(12px);
+      animation: softBreathe 3.8s ease-in-out infinite;
+    }
+    .mentor-portrait img { position: relative; z-index: 1; width: min(250px, 100%); height: 250px; object-fit: contain; }
+    .mentor-bubble {
+      padding: 12px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(93, 214, 255, .22);
+      background: rgba(93, 214, 255, .07);
+      color: #d8e8ff;
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+    .tips-ticker {
+      height: 92px;
+      overflow: hidden;
+      position: relative;
+      margin-bottom: 12px;
+      border: 1px solid rgba(139, 255, 191, .22);
+      border-radius: 8px 8px 8px 2px;
+      background: rgba(139, 255, 191, .06);
+      box-shadow: 0 12px 28px rgba(0,0,0,.18);
+    }
+    .tips-ticker::before {
+      content: "";
+      position: absolute;
+      left: 18px;
+      bottom: -8px;
+      width: 16px;
+      height: 16px;
+      background: rgba(139, 255, 191, .06);
+      border-left: 1px solid rgba(139, 255, 191, .22);
+      border-bottom: 1px solid rgba(139, 255, 191, .22);
+      transform: rotate(45deg);
+    }
+    .tips-ticker.hidden-tip { display: none; }
+    .tips-track {
+      display: grid;
+      transition: transform .45s ease;
+    }
+    .tip-item {
+      min-height: 92px;
+      padding: 12px 40px 12px 12px;
+      display: grid;
+      align-content: center;
+      color: #dfffee;
+      font-size: 13px;
+    }
+    .tip-item strong {
+      color: var(--brand-2);
+      font-size: 12px;
+    }
+    .tip-close {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      z-index: 2;
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      color: #dfffee;
+      background: rgba(5, 10, 22, .48);
+      border: 1px solid rgba(139, 255, 191, .18);
+      cursor: pointer;
+    }
+    .chat-log {
+      display: grid;
+      gap: 8px;
+      min-height: 180px;
+      max-height: 380px;
+      overflow: auto;
+      padding-right: 4px;
+      margin-bottom: 10px;
+    }
+    .chat-msg {
+      padding: 9px 10px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      background: rgba(5, 10, 22, .54);
+      font-size: 13px;
+      white-space: pre-wrap;
+    }
+    .chat-msg.user { color: #e8f0ff; border-color: rgba(139, 255, 191, .26); background: rgba(139, 255, 191, .06); }
+    .chat-actions { display: grid; gap: 8px; }
+    #mentorInput { min-height: 190px; }
+
+    .badge-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+      width: 284px;
+    }
+    .badge {
+      min-height: 66px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(5, 10, 22, .48);
+      opacity: .35;
+    }
+    .badge.earned { opacity: 1; border-color: rgba(255, 214, 107, .38); background: rgba(255, 214, 107, .07); }
+    .badge img { width: 46px; height: 46px; object-fit: contain; }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 60;
+      display: grid;
+      gap: 8px;
+      width: min(360px, calc(100vw - 36px));
+    }
+    .toast-item {
+      padding: 12px;
+      color: var(--text);
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: rgba(9, 16, 30, .94);
+      box-shadow: var(--shadow);
+      animation: toastIn .22s ease both;
+    }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes buttonShine { from { left: -80%; opacity: 0; } 30% { opacity: 1; } to { left: 130%; opacity: 0; } }
+    @keyframes brandPulse { 0%, 100% { box-shadow: 0 0 18px rgba(93, 214, 255, .28); } 50% { box-shadow: 0 0 34px rgba(139, 255, 191, .36); } }
+    @keyframes heroScan { from { background-position: -80vw 0, 0 0; } to { background-position: 80vw 0, 0 80px; } }
+    @keyframes nodeFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+    @keyframes softBreathe { 0%, 100% { opacity: .45; } 50% { opacity: .9; } }
+
+    .music-control {
+      position: fixed;
+      left: 18px;
+      bottom: 18px;
+      z-index: 65;
+    }
+    .music-toggle {
+      min-width: 112px;
+      min-height: 38px;
+      padding: 8px 12px;
+      border: 1px solid rgba(139, 255, 191, .32);
+      border-radius: 999px;
+      color: #dfffee;
+      background: rgba(8, 14, 27, .86);
+      box-shadow: 0 12px 34px rgba(0, 0, 0, .3);
+      backdrop-filter: blur(12px);
+      cursor: pointer;
+      font-weight: 800;
+    }
+    .music-toggle.is-on {
+      color: #06101d;
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+    }
+
+    .report-box {
+      white-space: pre-wrap;
+      padding: 12px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(255, 214, 107, .28);
+      background: rgba(255, 214, 107, .07);
+      color: #fff1c8;
+      margin-top: 12px;
+    }
+
+    .intro-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      display: none;
+      place-items: center;
+      padding: 18px;
+      background: rgba(2, 6, 16, .72);
+      backdrop-filter: blur(14px);
+    }
+    .intro-overlay.show { display: grid; }
+    .intro-dialog {
+      width: min(920px, 100%);
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      gap: 18px;
+      padding: 18px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: rgba(10, 17, 33, .96);
+      box-shadow: var(--shadow);
+    }
+    .intro-portrait {
+      min-height: 360px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background:
+        radial-gradient(circle at 50% 34%, rgba(93, 214, 255, .16), transparent 48%),
+        rgba(5, 10, 22, .58);
+      display: grid;
+      align-items: end;
+      justify-items: center;
+      overflow: hidden;
+    }
+    .intro-portrait img { width: 260px; height: 340px; object-fit: contain; }
+    .intro-copy { display: grid; align-content: center; gap: 14px; }
+    .intro-copy h2 { font-size: clamp(24px, 4vw, 40px); line-height: 1.12; }
+    .intro-copy p { color: #d7e5ff; font-size: 16px; min-height: 118px; }
+    .intro-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .faq-overlay {
+      position: fixed;
+      right: 28px;
+      top: 118px;
+      z-index: 90;
+      display: none;
+      width: min(430px, calc(100vw - 32px));
+    }
+    .faq-overlay.show { display: block; animation: bubbleIn .18s ease both; }
+    .faq-dialog {
+      max-height: min(620px, calc(100vh - 150px));
+      display: grid;
+      gap: 12px;
+      padding: 16px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: rgba(10, 17, 33, .96);
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+    .faq-dialog::before {
+      content: "";
+      position: absolute;
+      top: 28px;
+      right: -9px;
+      width: 18px;
+      height: 18px;
+      transform: rotate(45deg);
+      border-top: 1px solid var(--line-strong);
+      border-right: 1px solid var(--line-strong);
+      background: rgba(10, 17, 33, .96);
+    }
+    .faq-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+    .faq-head h2 { font-size: 20px; }
+    .faq-list {
+      display: grid;
+      gap: 10px;
+      overflow: auto;
+      max-height: 520px;
+      padding-right: 4px;
+    }
+    .faq-item {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(5, 10, 22, .54);
+    }
+    .faq-item strong { display: block; color: var(--brand-2); margin-bottom: 5px; }
+    .faq-item p { color: #d6e6ff; }
+    @keyframes bubbleIn { from { opacity: 0; transform: translateY(-6px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+    @media (max-width: 1180px) {
+      .main-layout { grid-template-columns: 84px minmax(0, 1fr); }
+      .mentor-panel { position: static; grid-column: 1 / -1; }
+      .mentor-panel .panel { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 12px; align-items: start; }
+      .mentor-portrait { margin-bottom: 0; }
+    }
+    @media (max-width: 880px) {
+      .gate-layout, .main-layout { grid-template-columns: 1fr; }
+      .left-rail, .left-rail .panel { position: static; width: 100%; min-height: 0; }
+      .left-rail:hover,
+      .left-rail:focus-within,
+      .left-rail.rail-preview,
+      .left-rail.rail-expanded,
+      .left-rail.rail-locked { width: 100%; }
+      .level-map, .level-node, .badge-grid { width: 100%; }
+      .left-rail .drawer-title,
+      .left-rail .drawer-subtitle,
+      .left-rail .level-node h4,
+      .left-rail .level-node p,
+      .left-rail .level-score,
+      .left-rail .stars,
+      .left-rail .badge-grid {
+        opacity: 1;
+        transform: none;
+        pointer-events: auto;
+      }
+      .hero-panel { min-height: 540px; }
+      .topbar { position: static; align-items: flex-start; flex-direction: column; }
+      .status-row { justify-content: flex-start; }
+      .mentor-panel .panel { grid-template-columns: 1fr; }
+      .level-map { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .intro-dialog { grid-template-columns: 1fr; }
+      .intro-portrait { min-height: 220px; }
+      .intro-portrait img { height: 220px; }
+    }
+    @media (max-width: 560px) {
+      .app-shell { padding: 10px; }
+      .hero-content { left: 16px; right: 16px; bottom: 16px; }
+      .key-panel, .panel, .section-block { padding: 12px; }
+      .score-grid { grid-template-columns: 1fr; }
+      .level-map { grid-template-columns: 1fr; }
+      .badge-grid { grid-template-columns: repeat(3, 1fr); }
+      .brand-block { min-width: 0; }
+      .faq-overlay { right: 12px; left: 12px; width: auto; }
+    }
+
+    .left-rail.rail-collapsed:not(:hover):not(:focus-within) .level-node > div:last-child {
+      display: none !important;
+    }
+    .left-rail.rail-collapsed:not(:hover):not(:focus-within) .drawer-title,
+    .left-rail.rail-collapsed:not(:hover):not(:focus-within) .drawer-subtitle,
+    .left-rail.rail-collapsed:not(:hover):not(:focus-within) .level-node h4,
+    .left-rail.rail-collapsed:not(:hover):not(:focus-within) .level-node p,
+    .left-rail.rail-collapsed:not(:hover):not(:focus-within) .level-score,
+    .left-rail.rail-collapsed:not(:hover):not(:focus-within) .state-badge,
+    .left-rail.rail-collapsed:not(:hover):not(:focus-within) .stars {
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transform: translateX(-8px) !important;
+    }
+
+    .audio-control-panel {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      z-index: 70;
+    }
+    .audio-panel-collapse {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      background: rgba(12, 19, 36, 0.92);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      cursor: pointer;
+      backdrop-filter: blur(12px);
+      transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+    .audio-panel-collapse:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.32);
+      background: rgba(16, 27, 50, 0.94);
+    }
+    .audio-icon { font-size: 18px; }
+    .audio-status {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--brand-2);
+    }
+    .audio-panel-expand {
+      display: none;
+      position: absolute;
+      bottom: 60px;
+      left: 0;
+      width: 280px;
+      background: rgba(12, 19, 36, 0.96);
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.42);
+      animation: slideUp .28s ease;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .audio-panel-expand.show { display: block; }
+    .audio-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+    .audio-panel-header h4 { font-size: 15px; font-weight: 700; }
+    .btn-close {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 20px;
+      cursor: pointer;
+      transition: background .2s ease, color .2s ease;
+    }
+    .btn-close:hover { background: rgba(255, 126, 139, 0.12); color: var(--bad); }
+    .audio-control-group {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+    .audio-control-group:last-child { border-bottom: none; }
+    .audio-control-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .control-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .btn-audio-toggle {
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+      color: #06101d;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: filter .18s ease, transform .18s ease;
+    }
+    .btn-audio-toggle:hover { filter: brightness(1.07); transform: scale(1.02); }
+    .btn-audio-toggle.is-off { background: rgba(135, 177, 255, 0.18); color: var(--muted); }
+    .volume-hint { font-size: 11px; color: var(--dim); }
+    .control-row select {
+      flex: 1;
+      padding: 6px 10px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: rgba(9, 16, 30, 0.84);
+      color: var(--text);
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .switch-label {
+      display: flex !important;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-size: 13px !important;
+      font-weight: 400 !important;
+      color: var(--text) !important;
+    }
+    .switch-label input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--brand);
+      cursor: pointer;
+    }
+    .btn-mute {
+      width: 100%;
+      padding: 10px;
+      border-radius: var(--radius);
+      background: rgba(255, 126, 139, 0.12);
+      border: 1px solid rgba(255, 126, 139, 0.28);
+      color: var(--bad);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .2s ease, border-color .2s ease;
+    }
+    .btn-mute:hover { background: rgba(255, 126, 139, 0.22); border-color: rgba(255, 126, 139, 0.45); }
+    .btn-mute.muted { background: rgba(116, 243, 165, 0.12); border-color: rgba(116, 243, 165, 0.28); color: var(--good); }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <section class="gate" id="gate">
+      <div class="gate-layout">
+        <div class="hero-panel">
+          <div class="hero-content">
+            <h1>AI编程挑战入门</h1>
+            <p class="hero-copy">选择完整伴学或无 Key 体验，跟着星星学长练习需求表达、任务拆解、验收判断、Bug 反馈和迭代协作，最后写出自己的网页 Demo 需求。</p>
+            <div class="hero-metrics">
+              <div class="metric"><strong>8</strong><span>主线关卡</span></div>
+              <div class="metric"><strong>90%</strong><span>考试建议线</span></div>
+              <div class="metric"><strong>GLM</strong><span>默认 glm-4.7-flash</span></div>
+              <div class="metric"><strong>本地</strong><span>进度保存在浏览器</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="key-panel">
+          <div class="senior-intro">
+            <img src="assets/images/mentor/mentor_idle.png" alt="星星学长">
+            <div>
+              <h3>学长先说两句</h3>
+              <p>这不是背代码的课。你会用闯关方式练会：说清目标、判断结果、反馈问题、持续迭代。</p>
+            </div>
+          </div>
+          <div class="mentor-card">
+            <img src="assets/images/mentor/mentor_idle.png" alt="星星学长 AI mentor">
+            <div>
+              <h2>训练营启动舱</h2>
+              <p>有 Key 可以开启 AI 点评和导师问答；无 Key 也能先进入学习模式，自由阅读、看答案和保存作业。</p>
+            </div>
+          </div>
+          <div class="field">
+            <label for="apiKey">智谱 API Key</label>
+            <div class="input-with-hint">
+              <input id="apiKey" type="password" autocomplete="off" placeholder="粘贴你的 Key">
+              <button class="hint-icon-btn" onclick="showKeyGuidePopup(event)" title="没有Key？点击免费申请">🎁</button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="modelSelect">模型选择</label>
+            <select id="modelSelect" onchange="changeModel(this.value)">
+              <option value="glm-4.7-flash">glm-4.7-flash（默认，免费/低成本练习）</option>
+              <option value="glm-5.1">glm-5.1（更强，可能需要先充值几块钱）</option>
+            </select>
+          </div>
+          <label class="checkline">
+            <input id="rememberKey" type="checkbox">
+            记住我的 Key，仅保存在本机浏览器
+          </label>
+          <div class="gate-actions">
+            <button class="btn sfx-hover" id="testKeyBtn" onclick="connectApi()">测试连接并进入</button>
+            <button class="btn secondary sfx-hover" onclick="enterOfflineMode()">进入学习模式</button>
+            <button class="btn ghost sfx-hover" onclick="clearSavedKey()">清除本地 Key</button>
+          </div>
+          <div class="notice mode-compare">
+            <div class="compare-row"><strong>有 Key</strong><span>可用闯关/考试模式，开启 AI 作业评分、错题讲解、导师问答和结业报告。</span></div>
+            <div class="compare-row"><strong>无 Key</strong><span>自动进入学习模式，可跳关、看答案、保存作业；AI 点评和实时问答会用本地提示替代。</span></div>
+          </div>
+          <div class="notice" id="gateNotice">默认模型使用 `glm-4.7-flash`。如果选择 `glm-5.1`，请先确认账号余额，建议充值几块钱再试。</div>
+          <div class="notice">如果浏览器跨域拦截 API，把整个文件夹交给 Trae / Codex / Claude Code / Cursor 等 AI 编辑器，让它在本地项目里加一个代理服务。进入主界面后可一键复制提示词。</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="key-guide-popup" id="keyGuidePopup">
+      <div class="popup-content">
+        <button class="popup-close" onclick="hideKeyGuidePopup()">×</button>
+        <h4>🎁 获取免费 API Key</h4>
+        <p>申请智谱AI Key可解锁：</p>
+        <ul>
+          <li>✨ AI智能点评你的作业</li>
+          <li>🎯 个性化学习建议</li>
+          <li>📊 详细评分与反馈</li>
+        </ul>
+        <a href="https://www.bigmodel.cn/invite?icode=40INHmnbquj46h2sAst2kAZ3c5owLmCCcMQXWcJRS8E%3D"
+           target="_blank"
+           class="btn guide-btn-sm"
+           onclick="event.stopPropagation(); trackOutboundLink('register')">
+          免费申请 Key →
+        </a>
+        <p class="popup-note">💡 无Key也可使用学习和闯关模式</p>
+      </div>
+    </div>
+
+    <div class="result-modal" id="resultModal" onclick="if (event.target === this) closeResultModal()">
+      <div class="result-dialog">
+        <h3 id="resultModalTitle">测验结果</h3>
+        <p id="resultModalMessage">本次分数已记录。</p>
+        <div class="result-score">
+          <div>
+            <strong id="resultModalScore">0 / 0</strong>
+            <span id="resultModalScoreLabel">本次得分</span>
+          </div>
+          <div>
+            <strong id="resultModalRate">0%</strong>
+            <span id="resultModalRateLabel">正确率</span>
+          </div>
+        </div>
+        <div class="result-actions">
+          <button class="btn secondary sfx-hover" onclick="closeResultModal()">继续复盘</button>
+        </div>
+      </div>
+    </div>
+
+    <section id="app" class="hidden">
+      <header class="topbar">
+        <div class="brand-block">
+          <div class="brand-mark">AI</div>
+          <div>
+            <div class="brand-title">AI编程挑战入门</div>
+            <div class="brand-subtitle">星星学长陪你完成从需求到 Demo 的第一套闭环</div>
+          </div>
+        </div>
+        <div class="status-row">
+          <span class="status-pill good">Key <strong id="keyStatus">已连接</strong></span>
+          <span class="status-pill">徽章 <strong id="badgeText">0 / 7</strong></span>
+          <span class="status-pill">进度 <strong id="progressText">0 / 8</strong></span>
+          <span class="status-pill">总分 <strong id="scoreText">不计分</strong></span>
+          <label class="mode-select">模型
+            <select id="topModelSelect" onchange="changeModel(this.value)">
+              <option value="glm-4.7-flash">glm-4.7-flash</option>
+              <option value="glm-5.1">glm-5.1</option>
+            </select>
+          </label>
+          <label class="mode-select">模式
+            <select id="modeSelect" onchange="changeMode(this.value)">
+              <option value="learn">学习</option>
+              <option value="challenge">闯关</option>
+              <option value="exam">考试</option>
+            </select>
+          </label>
+          <button class="btn ghost sfx-hover" onclick="showGate()" title="还没有API Key？点击免费申请！">Key 设置</button>
+          <button class="btn ghost sfx-hover" onclick="resetProgress()">重置进度</button>
+        </div>
+      </header>
+
+      <main class="main-layout">
+        <aside class="left-rail">
+          <div class="panel">
+            <div class="rail-section">
+              <div class="rail-head">
+                <div class="rail-icon">关</div>
+                <div>
+                  <h2 class="drawer-title">关卡地图</h2>
+                  <span class="drawer-subtitle">悬停展开学习路线</span>
+                </div>
+              </div>
+            <div class="level-map" id="levelMap"></div>
+            </div>
+            <div class="rail-section">
+              <div class="rail-head">
+                <div class="rail-icon">章</div>
+                <div>
+                  <h3 class="drawer-title">徽章库</h3>
+                  <span class="drawer-subtitle" id="badgeMiniText">0 已获得</span>
+                </div>
+              </div>
+            <div class="badge-grid" id="badgeGrid"></div>
+            </div>
+          </div>
+        </aside>
+
+        <section>
+          <div id="missionPanel"></div>
+        </section>
+
+        <aside class="mentor-panel">
+          <div class="panel">
+            <div>
+              <div class="panel-title">
+                <h2>星星学长</h2>
+                <span id="mentorStateText">待命</span>
+              </div>
+              <div class="mentor-portrait">
+                <img id="mentorImg" src="assets/images/mentor/mentor_idle.png" alt="星星学长">
+              </div>
+            </div>
+            <div>
+              <div class="mentor-bubble" id="mentorBubble">选择模式后，从第一关开始。每关要完成阅读、文本作业和知识测验。</div>
+              <div class="mentor-guide">
+                <h3>学习支援</h3>
+                <p>常见问题里放了模型选择、浏览器体验、计分和跨域说明。</p>
+                <div class="guide-actions">
+                  <button class="btn ghost sfx-hover" onclick="showFaq()">❓ 常见问题</button>
+                </div>
+              </div>
+      <div class="tips-ticker" id="tipsTicker">
+                <button class="tip-close" onclick="closeTipBubble()" aria-label="关闭提示">×</button>
+                <div class="tips-track" id="tipsTrack"></div>
+              </div>
+              <div class="chat-log" id="chatLog"></div>
+      <div class="field">
+        <label for="mentorInput">问星星学长</label>
+        <textarea id="mentorInput" placeholder="例如：我这题为什么只得 1 分？或者：我不知道怎么把需求写清楚。"></textarea>
+      </div>
+      <div class="chat-actions">
+                <button class="btn sfx-hover" onclick="askMentor()">发送给星星学长</button>
+                <button class="btn secondary sfx-hover" onclick="askHint()">提示我一下</button>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </main>
+    </section>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <div class="audio-control-panel" id="audioControlPanel">
+    <div class="audio-panel-collapse" onclick="toggleAudioPanel()">
+      <span class="audio-icon" id="audioIcon">🎵</span>
+      <span class="audio-status" id="audioStatus">开</span>
+    </div>
+
+    <div class="audio-panel-expand" id="audioPanelExpand">
+      <div class="audio-panel-header">
+        <h4>音频控制</h4>
+        <button onclick="toggleAudioPanel()" class="btn-close">×</button>
+      </div>
+
+      <div class="audio-control-group">
+        <label>背景音乐</label>
+        <div class="control-row">
+          <button class="btn-audio-toggle" id="musicToggleBtn" onclick="toggleMusic()">
+            <span id="musicLabel">开启</span>
+          </button>
+          <span class="volume-hint" id="musicVolumeHint">28%</span>
+        </div>
+      </div>
+
+      <div class="audio-control-group">
+        <label>旁白设置</label>
+        <div class="control-row">
+          <select id="voiceSpeedSelect" onchange="setVoiceSpeed(Number(this.value))">
+            <option value="0.75">0.75x 慢速</option>
+            <option value="1">1.0x 正常</option>
+            <option value="1.2" selected>1.2x 正常</option>
+            <option value="1.5">1.5x 较快</option>
+            <option value="2">2.0x 极速</option>
+          </select>
+        </div>
+
+        <div class="control-row">
+          <label class="switch-label">
+            <input type="checkbox" id="autoPlayVoice" onchange="toggleAutoPlayVoice()" checked>
+            <span>自动播放旁白</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="audio-control-group">
+        <button class="btn-mute" id="globalMuteBtn" onclick="toggleGlobalMute()">
+          🔇 全局静音
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="intro-overlay" id="introOverlay">
+    <div class="intro-dialog">
+      <div class="intro-portrait">
+        <img src="assets/images/mentor/mentor_idle.png" alt="星星学长">
+      </div>
+      <div class="intro-copy">
+        <span class="eyebrow">星星学长开场</span>
+        <h2>欢迎来到 AI 编程入门伴学营</h2>
+        <p id="introTyping"></p>
+        <div class="intro-actions">
+          <button class="btn sfx-hover" onclick="nextIntroLine()">继续</button>
+          <button class="btn secondary sfx-hover" onclick="finishIntro()">进入训练营</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="faq-overlay" id="faqOverlay">
+    <div class="faq-dialog">
+      <div class="faq-head">
+        <h2>常见问题与学习提示</h2>
+        <button class="btn ghost sfx-hover" onclick="hideFaq()">关闭</button>
+      </div>
+      <div class="faq-list" id="faqList"></div>
+    </div>
+  </div>
+
+  <script>
+    const ASSET = 'assets/';
+    const STORAGE = {
+      state: 'ai_coding_v3_state',
+      assignments: 'ai_coding_v3_assignments',
+      apiKey: 'ai_coding_v3_api_key',
+      rememberKey: 'ai_coding_v3_remember_key',
+      sessionKey: 'ai_coding_v3_session_api_key',
+      connected: 'ai_coding_v3_connected',
+      offline: 'ai_coding_v3_offline',
+      mode: 'ai_coding_v3_mode',
+      model: 'ai_coding_v3_model',
+      introSeen: 'ai_coding_v3_intro_seen',
+      music: 'ai_coding_v3_music',
+      audioLogicVersion: 'ai_coding_v3_audio_logic_version',
+      voiceSpeed: 'ai_coding_v3_voice_speed',
+      autoPlayVoice: 'ai_coding_v3_auto_play_voice',
+      audioPanelExpanded: 'ai_coding_v3_audio_panel_expanded'
+    };
+    const MODES = {
+      learn: {
+        label: '学习',
+        unlock: 'free',
+        assignmentScore: 0,
+        finalAssignmentScore: 0,
+        quizRate: 0,
+        showAnswers: true,
+        assignmentRequired: false,
+        desc: '自由阅读所有关卡内容，可查看参考答案，不计分，可随意跳转。'
+      },
+      challenge: {
+        label: '闯关',
+        unlock: 'sequence',
+        assignmentScore: 1,
+        finalAssignmentScore: 1,
+        quizRate: 0,
+        showAnswers: false,
+        assignmentRequired: false,
+        exam: false,
+        desc: '按顺序答题，记录学习进度和分数；填任意内容即可解锁下一关。'
+      },
+      exam: {
+        label: '考试',
+        unlock: 'exam',
+        assignmentScore: 1,
+        finalAssignmentScore: 1,
+        quizRate: 0,
+        showAnswers: false,
+        assignmentRequired: true,
+        exam: true,
+        desc: '正式考试，重新组卷计分；保持现状不变。'
+      }
+    };
+    const introLines = [
+      'AI 编程挑战入门 V3',
+      '',
+      '三种模式任你选择：',
+      '\u2022 \u{1F4DA} 学习模式 — 自由浏览，查看答案',
+      '\u2694 \uFE0F 闯关模式 — 答题记录进度',
+      '\u{1F393} 考试模式 — 最终检验成果',
+      '',
+      '无需 API Key 即可开始学习！'
+    ];
+    const AI_CONFIG = {
+      endpoint: 'https://open.bigmodel.cn/api/paas/v4/chat/completions',
+      model: 'glm-4.7-flash'
+    };
+    const MODEL_OPTIONS = {
+      'glm-4.7-flash': {
+        label: 'glm-4.7-flash',
+        desc: '默认模型，适合免费或低成本入门练习。'
+      },
+      'glm-5.1': {
+        label: 'glm-5.1',
+        desc: '更强的新模型，通常需要账号有余额；建议学生先充值几块钱再开启。'
+      }
+    };
+    const TTS = {
+      opening: { src: ASSET + 'voice/voice_01_opening_welcome.wav', title: '开场欢迎', text: `欢迎来到 AI 编程挑战入门。我是星星学长。
+这门课不是让你背代码，也不是让 AI 替你自动完成一切。
+我们要练的是一套真正能迁移的方法：说清目标，预览结果，判断差距，反馈修改。
+你可以把 Trae、Codex、Claude Code 或 Cursor 当成不同入口。
+工具会变，但协作流程不会变。
+准备好以后，我们先从“人和 AI 怎么分工”开始。` },
+      mode: { src: ASSET + 'voice/voice_02_mode_intro.wav', title: '模式选择介绍', text: `开始之前，你可以选择学习模式。
+学习模式适合先自由浏览，可以跳关，也可以查看答案。
+闯关模式适合边学边练，会记录文本作业和选择题分数；填任意内容即可解锁下一关。
+考试模式会重新组卷，切出考试模式会清空本次成绩。
+没有 Key 也能体验闯关和考试，但问答题只会按本地规则记基础分，不代表 AI 已经判断答案质量。
+如果你是第一次学习，我建议先用学习模式。` },
+      levels: {
+        1: { src: ASSET + 'voice/voice_03_level_1_start.wav', title: '第一关开始', text: `第一关，我们先弄清楚 AI 编程到底是什么。
+AI 编程不是你什么都不用想，也不是只复制粘贴代码。
+更准确地说，它是一种人机协作。
+你负责目标、判断、取舍和反馈。
+AI 负责生成、修改、解释和补全。
+本关你要证明的是：你能说清人负责什么，AI 负责什么，并能举一个网页任务例子。` },
+        2: { src: ASSET + 'voice/voice_04_level_2_tools.wav', title: '第二关工具迁移', text: `第二关，我们聊工具。
+Trae、Codex、Claude Code、Cursor，这些工具界面不同，但底层学习方法很像。
+你真正要掌握的不是某个按钮在哪里。
+而是打开项目、描述任务、预览结果、反馈修改这四步。
+如果你理解了这套流程，换工具时就不会从零开始。
+本关作业要你说清：换工具时，哪些动作可以迁移。` },
+        3: { src: ASSET + 'voice/voice_05_level_3_prompt.wav', title: '第三关需求表达', text: `第三关开始，训练真正关键的能力：把想法说清楚。
+很多新手不是输在不会代码，而是输在需求太模糊。
+比如“做个高级的网站”，AI 很难知道高级具体是什么。
+你要把它翻译成页面类型、目标用户、内容模块、视觉风格、交付文件和验收标准。
+越具体，第一版结果越接近你的目标。` },
+        4: { src: ASSET + 'voice/voice_06_level_4_breakdown.wav', title: '第四关任务拆解', text: `第四关，我们练任务拆解。
+不要一上来就把十几个需求全部塞给 AI。
+那样就算页面能生成，你也很难判断哪里对、哪里错。
+更稳的方法是：先结构，再内容，再样式，再交互，最后适配。
+每一步都要能预览、能验收。
+拆解不是降低目标，而是提高成功率。` },
+        5: { src: ASSET + 'voice/voice_08_level_5_acceptance.wav', title: '第五关学会验收', text: `第五关，我们训练“看结果”的能力。
+AI 生成页面后，不要只问自己好不好看。
+你要检查内容是否完整，布局是否合理，按钮能不能点，手机端会不会乱。
+好的验收标准必须能判断通过或不通过。
+比如“手机端文字不重叠”，就比“页面更高级”清楚得多。
+会验收，才是真的会用 AI 编程。` },
+        6: { src: ASSET + 'voice/voice_09_level_6_bug_feedback.wav', title: '第六关 Bug 反馈', text: `第六关，我们练 Bug 反馈。
+不要只说“不行”“坏了”“有问题”。
+AI 需要知道你做了什么，实际发生了什么，你期望发生什么，问题在哪里。
+如果有报错，也要复制报错并说明什么时候出现。
+好的反馈不是抱怨，而是给 AI 定位问题的线索。
+你说得越清楚，修复越快。` },
+        7: { src: ASSET + 'voice/voice_10_level_7_iteration.wav', title: '第七关迭代意识', text: `第七关，我们练迭代。
+AI 第一次生成的结果，通常只是草稿。
+不要期待一次完美，也不要一口气改十个地方。
+更稳的方法是：每一轮只解决一类问题。
+比如第一轮补内容，第二轮调视觉，第三轮加交互。
+每轮都有验收方式，你才能知道修改是否真的变好了。` },
+        8: { src: ASSET + 'voice/voice_11_level_8_final_demo.wav', title: '第八关毕业 Demo', text: `第八关，毕业挑战。
+你要写出一份能直接复制给 AI 编程工具的 Demo 需求。
+这份需求要包含项目名称、目标用户、页面模块、视觉风格、交互功能、验收标准、第一轮范围和后续迭代计划。
+它不是作文，而是一条可以启动真实项目的高质量指令。
+写完以后，你就可以把它交给喜欢的 AI 编程工具，真正做出第一个网页。` }
+      },
+      mid: { src: ASSET + 'voice/voice_07_mid_break.wav', title: '中场休息', text: `先暂停一下，你已经完成前半段训练。
+到这里，你应该已经知道：工具不是最重要的，协作流程才是关键。
+你练过了人机分工、工具迁移、需求表达和任务拆解。
+这意味着你已经可以开始做一个基础网页 Demo。
+后半段会更接近真实工作：怎么验收，怎么反馈 Bug，怎么迭代优化。
+休息一下，准备好了我们继续。` },
+      graduate: { src: ASSET + 'voice/voice_18_graduation_message.wav', title: '结业鼓励', text: `恭喜你完成 AI 编程挑战入门。
+你现在掌握了第一套 AI 编程协作闭环：说清目标，预览结果，反馈问题，持续迭代。
+接下来，不要只停留在教程里。
+把你的最终 Demo 提示词复制出去，交给你喜欢的 AI 编程工具，真正做出第一个网页。
+做出来之后，再回来复盘哪里还可以优化。
+这才是做中学。` },
+      assignmentRetry: { src: ASSET + 'voice/voice_12_assignment_feedback.wav', title: '作业评分反馈', text: `作业已经提交。
+先看分数，再看反馈里缺了什么。
+文本作业不是比谁写得长，而是看你有没有说清目标、例子和验收方式。
+如果只有一句口号，通常只能拿基础分。
+如果你能把场景、操作和判断标准讲清楚，就更接近满分答案。
+修改一下，再交一次也没关系。` },
+      quizRetry: { src: ASSET + 'voice/voice_13_quiz_retry.wav', title: '选择题错题反馈', text: `选择题还差一点。
+别急，错题不是失败，而是在告诉你哪个概念还没稳。
+先看解释，再想想真实使用 AI 编程工具时会怎么做。
+普通模式里，改答案适合复盘。
+考试模式里，选择题记录第一次判断，所以更要先想清楚再选。` },
+      examIntro: { src: ASSET + 'voice/voice_14_exam_intro.wav', title: '考试模式说明', text: `考试模式会重新组卷。
+这里不再按关卡练习，而是综合考察需求表达、任务拆解、验收、Bug 反馈和迭代。
+问答题可以逐题提交评分，最多修改重评一次。
+选择题记录第一次作答，之后修改只用于复盘。
+如果没有 Key，问答题会按本地规则记录基础分，但不代表 AI 已经严格判断质量。
+如果你切出考试模式，本次考试记录会被清空。` },
+      examGrading: { src: ASSET + 'voice/voice_15_exam_text_grading.wav', title: '考试问答评分中', text: `我正在检查这道问答题。
+评分时，我会看你是不是只写了结论，还是说清了原因、场景、操作和验收标准。
+高分答案不一定很长，但一定具体。
+如果这次只有基础分，优先补一个真实例子，或者补一条能检查的标准。` },
+      examChoice: { src: ASSET + 'voice/voice_16_exam_choice_recorded.wav', title: '考试选择题记录', text: `这道选择题已经记录第一次作答。
+如果你选错了，页面会显示解释。
+你可以修改答案来复盘，但分数不会重新计算。
+这样设计不是为了为难你，而是为了保留第一次判断的真实状态。` },
+      examResult: { src: ASSET + 'voice/voice_17_exam_result.wav', title: '考试提交反馈', text: `考试已经提交。
+先看总分，再看每一道题的解释。
+如果没有达到你的目标，不要急着重刷。
+先回普通模式，把错题对应的关卡重新练一遍，再回来重新组卷。
+考试不是为了吓你，而是帮你发现还没有真正掌握的地方。` }
+    };
+    const MUSIC = {
+      launch: ASSET + 'music/bgm_launch_gate.mp3',
+      learn: ASSET + 'music/bgm_simple_mode.mp3',
+      challenge: ASSET + 'music/bgm_normal_practice.mp3',
+      exam: ASSET + 'music/bgm_exam_mode.mp3',
+      mentor: ASSET + 'music/bgm_mentor_feedback.mp3',
+      success: ASSET + 'music/bgm_correct_progress.mp3',
+      retry: ASSET + 'music/bgm_retry_support.mp3',
+      graduate: ASSET + 'music/bgm_graduation_result.mp3'
+    };
+    const AI_REQUIRED_VOICE_KEYS = new Set(['assignmentRetry', 'examGrading']);
+    let currentVoice = null;
+    let currentVoiceKey = '';
+    let voiceSpeed = 1.2;
+    let audioUnlocked = false;
+    let musicEnabled = true;
+    let currentMusic = null;
+    let currentMusicKey = '';
+    let globalMuted = false;
+    let autoPlayVoiceEnabled = true;
+    let lastLevelVoice = null;
+    let tipIndex = 0;
+    let tipTimer = null;
+    let tipsHidden = false;
+    const mentorImages = {
+      idle: ASSET + 'images/mentor/mentor_idle.png',
+      happy: ASSET + 'images/mentor/mentor_happy.png',
+      thinking: ASSET + 'images/mentor/mentor_thinking.png',
+      guide: ASSET + 'images/mentor/mentor_guide.png',
+      retry: ASSET + 'images/mentor/mentor_retry.png',
+      unlock: ASSET + 'images/mentor/mentor_unlock.png',
+      coding: ASSET + 'images/mentor/mentor_coding.png',
+      challenge: ASSET + 'images/mentor/mentor_challenge.png'
+    };
+    const sounds = {
+      click: new Audio(ASSET + 'sfx/sfx_button_click.mp3'),
+      hover: new Audio(ASSET + 'sfx/sfx_button_hover.wav'),
+      open: new Audio(ASSET + 'sfx/sfx_panel_open.mp3'),
+      close: new Audio(ASSET + 'sfx/sfx_panel_close.wav'),
+      inputOpen: new Audio(ASSET + 'sfx/sfx_input_focus.mp3'),
+      connecting: new Audio(ASSET + 'sfx/sfx_ai_connecting.mp3'),
+      success: new Audio(ASSET + 'sfx/sfx_connection_success.mp3'),
+      fail: new Audio(ASSET + 'sfx/sfx_connection_error.mp3')
+    };
+    Object.values(sounds).forEach(audio => {
+      audio.volume = 0.34;
+      audio.preload = 'auto';
+    });
+
+    const badges = [
+      { id: 'launcher', name: '启动者', img: ASSET + 'images/badges/badge_launcher.png' },
+      { id: 'prompt', name: '需求表达者', img: ASSET + 'images/badges/badge_prompt.png' },
+      { id: 'planner', name: '拆解师', img: ASSET + 'images/badges/badge_planner.png' },
+      { id: 'preview', name: '预览侦察员', img: ASSET + 'images/badges/badge_preview.png' },
+      { id: 'bugfix', name: 'Bug 修复官', img: ASSET + 'images/badges/badge_bugfix.png' },
+      { id: 'iteration', name: '迭代高手', img: ASSET + 'images/badges/badge_iteration.png' },
+      { id: 'graduate', name: 'Demo 毕业生', img: ASSET + 'images/badges/badge_graduate.png' }
+    ];
+
+    const LESSONS = {
+      1: {
+        proof: '你能用自己的话说明“人负责什么、AI 负责什么”，并能举一个网页任务例子。',
+        why: '很多新手以为 AI 编程就是“让 AI 替我写代码”。这会导致两个问题：第一，目标说不清，AI 只能猜；第二，结果错了也不知道怎么改。真正可持续的方法是把 AI 当成执行力很强的协作者，你负责方向盘，AI 负责加速。',
+        case: '假设你要做“个人介绍网页”。弱表达是“帮我做个网页”。强表达是“做一个给面试官看的个人介绍网页，首屏有姓名和职业方向，下面有技能、项目经历、联系方式，页面要能在手机上阅读”。两者差距不在技术，而在目标是否可执行。',
+        example: '好指令示例：请创建一个单文件 index.html 个人介绍页，目标用户是面试官。内容包括首屏简介、3 个技能标签、2 个项目卡片和联系方式。风格清爽专业，手机端不重叠。',
+        trap: '误区：以为模型越强，自己越可以省略需求。实际上模型越强，越能利用清晰需求；需求越模糊，强模型也只能做“看起来像”的东西。',
+        action: '先写一个你真的想做的网页目标，不追求完美，但必须包含：给谁看、用来干什么、页面里至少有什么。'
+      },
+      2: {
+        proof: '你能解释为什么工具会变，但“打开项目、下任务、预览、反馈”这套流程可以迁移。',
+        why: '工具会不断变化，今天用 Trae，明天用 Codex，后天可能换 Claude Code 或 Cursor。你真正要掌握的是通用协作流程：打开项目、描述目标、查看结果、反馈问题、继续迭代。',
+        case: '同一个任务“做一个作品集页面”，在 Trae 里可能是对话生成，在 Codex 里可能是改文件，在 Claude Code 里可能是命令行协作。但你的核心表达不变：目标、范围、文件、验收标准。',
+        example: '迁移思路：不要问“这个按钮在哪里”，先问“这个工具如何打开项目、如何提交需求、如何预览、如何查看修改过的文件”。这四件事弄懂，就能开始做。',
+        trap: '误区：把学习重点放在记按钮。按钮位置最容易过期，流程和判断能力才更长期。',
+        action: '写下你对“工具无所谓，方法重要”的理解，尤其要说清楚为什么用户仍然要判断结果。'
+      },
+      3: {
+        proof: '你能把一句空泛愿望翻译成 AI 能执行的网页需求。',
+        why: '提示词不是越长越好，而是越能让 AI 执行越好。AI 做网页时最怕“高级、好看、优化一下”这种没有边界的词。你要把感觉翻译成结构、内容、风格和验收。',
+        case: '“做个高级的网站”会让 AI 猜行业、猜内容、猜风格；“做一个咖啡店首页，包含品牌介绍、菜单、门店地址、预约按钮，深绿色和米白色，首屏有大图，手机端可阅读”就能直接执行。',
+        example: '改写公式：页面类型 + 目标用户 + 内容模块 + 风格方向 + 交互功能 + 文件/技术要求 + 验收标准。',
+        trap: '误区：给一堆形容词，但不给内容。网页首先是信息结构，其次才是装饰。',
+        action: '把“帮我做个高级的网站”改写成一段可以直接交给 AI 编程工具执行的需求。'
+      },
+      4: {
+        proof: '你能把一个复杂网页任务拆成顺序合理、每步可验收的小任务。',
+        why: '复杂任务一次塞太多，AI 可能做出一个“什么都有一点，但哪里都不稳”的版本。拆解能让每一步都有明确产物，也方便你定位问题。',
+        case: '作品集网站不要一口气要求首页、详情页、筛选、动画、表单、后台。更稳的是：第一轮做静态结构，第二轮补真实内容，第三轮调视觉，第四轮加交互，第五轮做手机适配。',
+        example: '拆解示例：1. 生成基础 HTML 结构；2. 填入项目内容；3. 统一卡片和配色；4. 添加项目筛选和联系弹窗；5. 检查手机端布局。',
+        trap: '误区：拆解等于降低标准。恰恰相反，拆解是为了让高标准更容易落地。',
+        action: '把一个作品集网站拆成 4-5 个步骤，每一步都要能预览或验收。'
+      },
+      5: {
+        proof: '你能写出可检查的验收标准，而不是只说“好看、高级”。',
+        why: 'AI 生成之后，你必须会看。不会验收的人，只能凭感觉说“还行”或“不对”；会验收的人能明确指出缺什么、哪里乱、什么按钮不能用。',
+        case: '一个页面看起来漂亮，但手机端文字重叠、联系按钮不能点、项目卡片只有一个，这就不合格。验收不是审美投票，而是目标检查。',
+        example: '验收清单示例：页面能打开；首屏说明身份；至少 3 个项目卡片；联系按钮可点击；375px 手机宽度下不重叠。',
+        trap: '误区：只看第一眼美不美。真实产品要看内容、布局、交互、适配、文案是否都达标。',
+        action: '给“个人介绍页”写 5 条可检查验收标准，尽量让每条都能用“是/否”判断。'
+      },
+      6: {
+        proof: '你能把模糊 bug 反馈改成包含动作、实际、期望和位置的修复请求。',
+        why: 'Bug 反馈是 AI 编程里的高频能力。你说“坏了”，AI 要猜哪里坏；你说“点击提交留言后没有新增留言，期望清空输入框并显示在列表顶部”，AI 就能定位。',
+        case: '同样是按钮问题，弱反馈是“按钮没用”。强反馈是“页面底部提交留言按钮点击后没有任何变化，期望把输入框内容新增到留言列表，并清空输入框。请检查点击事件和渲染逻辑”。',
+        example: 'Bug 反馈模板：我做了什么 + 实际发生什么 + 我期望什么 + 问题位置 + 请优先检查什么。',
+        trap: '误区：把情绪当反馈。AI 不怕你生气，但它需要线索。',
+        action: '把“按钮坏了，帮我修”改写成完整 Bug 反馈。'
+      },
+      7: {
+        proof: '你能设计 3 轮有重点的迭代，而不是让 AI “随便优化”。',
+        why: 'AI 的第一版通常只是草稿。真正的作品来自多轮聚焦迭代：先让它能跑，再让它完整，再让它好看，再让它好用。',
+        case: '一个个人网页第一版可能只有标题和卡片。第二轮补项目内容，第三轮统一字体和间距，第四轮加项目筛选，第五轮检查手机端。这比一次要求全部完美更可靠。',
+        example: '迭代请求示例：保留当前内容结构，把项目卡片改为桌面端三列、移动端单列；增加 8px 圆角和轻微阴影；悬停时上浮 4px。',
+        trap: '误区：每轮都让 AI “整体优化”。整体优化太空泛，容易破坏旧功能。',
+        action: '写 3 轮迭代计划，每一轮只聚焦一类问题，并说明可观察结果。'
+      },
+      8: {
+        proof: '你能写出一份可以直接交给 AI 编程工具执行的完整 Demo 需求。',
+        why: '毕业挑战的价值不是在教程里答题，而是产出一份真正能拿去做网页的 Demo 需求。它是你和 AI 编程工具协作的第一张路线图。',
+        case: '如果你的目标是“学习打卡网页”，完整需求要说清用户是谁、有哪些模块、视觉是什么、按钮怎么交互、第一版做什么、后续再加什么。',
+        example: '最终提示词结构：项目名称；目标用户；页面模块；视觉风格；交互功能；验收标准；第一轮范围；后续迭代计划。',
+        trap: '误区：毕业需求只写一句愿望。愿望不能执行，需求才可以执行。',
+        action: '写一份完整网页 Demo 需求，之后可以复制给 Trae / Codex / Claude Code / Cursor 开始真正实现。'
+      }
+    };
+
+    const levels = [
+      {
+        id: 1,
+        title: '觉醒：AI 编程到底是什么',
+        short: 'AI 编程是什么',
+        core: '人负责目标、判断和反馈，AI 负责生成、修改和解释。',
+        difficulty: '入门',
+        bg: ASSET + 'images/levels/level_1_bg.png',
+        item: ASSET + 'images/levels/level_1_item.png',
+        badge: 'launcher',
+        mentor: 'guide',
+        knowledge: [
+          'AI 编程不是让 AI 自动替你做完一切，而是人和 AI 一起完成一个可运行结果。',
+          '你要负责目标、取舍、验收和反馈。AI 可以负责生成代码、解释逻辑和修改文件。',
+          '核心闭环是：描述目标 -> 生成结果 -> 预览判断 -> 反馈修改 -> 持续迭代。'
+        ],
+        assignmentTitle: '证明你理解了人机分工',
+        assignmentPrompt: '请用“我负责……AI 负责……”的格式写 2 组分工，并用一个你想做的网页举例。例子必须包含：页面给谁用、AI 先做什么、你如何判断它做得对不对。',
+        requirements: '必须包含：2 组人机分工；一个具体网页例子；说明用户如何验收 AI 的结果。',
+        rubric: '分工清楚 30 分；网页例子具体 25 分；验收判断明确 30 分；用自己的话表达 15 分。',
+        hint: '先别写风格，先写清楚“给谁看、用来干什么、页面里有什么”。',
+        quiz: [
+          q('AI 编程中，用户最重要的职责是什么？', ['背熟 HTML 语法', '描述目标、判断结果、提出修改意见', '让 AI 自己决定产品方向', '只复制粘贴代码'], 1, 'AI 能写代码，但目标、取舍和验收需要你负责。'),
+          q('以下哪个说法最准确？', ['AI 编程就是不用思考', 'AI 编程可以保证一次生成完美页面', 'AI 编程是“描述、生成、预览、反馈、迭代”的协作过程', 'AI 编程只能给程序员用'], 2, 'AI 编程的能力来自持续协作，不是一次性许愿。'),
+          q('如果 AI 第一次做出的页面不符合预期，最好的做法是？', ['说明哪里不符合，并提出具体修改方向', '直接说“你做错了”', '删除项目重新开始', '立刻换工具'], 0, '具体反馈会给 AI 修改方向，比情绪化评价更有效。'),
+          q('下面哪句话最像 AI 编程里的“人机分工”？', ['人负责写每一行代码，AI 负责鼓励', '人负责目标和验收，AI 负责实现和解释', 'AI 负责所有设计，人只负责等待', '人只负责安装软件'], 1, '人机协作的关键是你掌握方向盘。')
+        ]
+      },
+      {
+        id: 2,
+        title: '装备库：工具都只是入口',
+        short: '工具怎么理解',
+        core: 'Trae、Codex、Claude Code、Cursor 只是不同入口，方法可以迁移。',
+        difficulty: '入门',
+        bg: ASSET + 'images/levels/level_2_bg.png',
+        item: ASSET + 'images/levels/level_2_item.png',
+        badge: 'prompt',
+        mentor: 'thinking',
+        knowledge: [
+          'Trae、Codex、Claude Code、Cursor 都可以围绕项目文件和自然语言指令协助写代码。',
+          '工具界面会变化，但“打开项目、描述任务、预览结果、反馈修改”的流程可以迁移。',
+          '新手应该先学会协作方法，再选择自己顺手的工具。'
+        ],
+        assignmentTitle: '把工具迁移说清楚',
+        assignmentPrompt: '假设你今天用 Trae，明天换 Codex 或 Claude Code。请写出你会迁移的 4 个动作：如何打开项目、如何描述任务、如何预览结果、如何反馈修改。每个动作写一句。',
+        requirements: '必须包含 4 个动作：打开项目、描述任务、预览结果、反馈修改；必须说明为什么不是记按钮。',
+        rubric: '4 个动作完整 40 分；迁移逻辑清楚 25 分；能说明不记按钮的原因 20 分；表达具体 15 分。',
+        hint: '可以用“换工具也能用同一套方法”来组织答案。',
+        quiz: [
+          q('Trae / Codex / Claude Code / Cursor 的共同点更接近哪一项？', ['都是图片生成软件', '都能通过自然语言协助生成或修改项目代码', '都只能写 Python', '都不需要用户判断效果'], 1, '它们形态不同，但都围绕自然语言和项目代码协作。'),
+          q('新手为什么不应该只记某个工具按钮？', ['工具界面会变，但协作流程可以迁移', '按钮永远不会变', '所有工具完全一样', '只要会按钮就能做任何产品'], 0, '学会流程后，换工具也不容易迷路。'),
+          q('换到一个新的 AI 编程工具，第一件事最应该确认什么？', ['它的图标颜色', '它如何打开项目、如何对话、如何预览结果', '它有没有排行榜', '它能不能自动替你想商业模式'], 1, '先摸清项目、对话和预览三件事。'),
+          q('以下哪种心态最适合学习 AI 编程？', ['工具替我全自动完成', '我学会一种协作流程，然后迁移到不同工具', '只要模型强，描述可以非常模糊', '只学工具名，不做练习'], 1, '流程比工具名更有长期价值。')
+        ]
+      },
+      {
+        id: 3,
+        title: '第一条指令：把想法说清楚',
+        short: '需求表达',
+        core: '好提示词不是长，而是让 AI 能执行。',
+        difficulty: '中等',
+        bg: ASSET + 'images/levels/level_3_bg.png',
+        item: ASSET + 'images/levels/level_3_item.png',
+        badge: 'prompt',
+        mentor: 'guide',
+        knowledge: [
+          '一个可执行的网页需求至少包含页面类型、目标用户、内容模块、风格方向和交付要求。',
+          '“高级、好看、酷炫”不是不能用，但必须解释成具体视觉或交互标准。',
+          '你写得越具体，AI 的第一版越接近你的预期。'
+        ],
+        assignmentTitle: '把空泛愿望翻译成执行指令',
+        assignmentPrompt: '请把“帮我做个高级的网站”改写成一条真正可执行的 AI 编程指令。必须先写“原句的问题是什么”，再写“改写后的指令”。',
+        requirements: '必须包含：原句至少 2 个问题；改写后包含页面类型、用户、3 个内容模块、具体风格、交付文件、验收标准。',
+        rubric: '能指出原句问题 20 分；改写信息完整 45 分；风格和验收具体 25 分；语言可执行 10 分。',
+        hint: '把“高级”翻译成具体要求，例如蓝白配色、卡片布局、动效、移动端适配。',
+        quiz: [
+          q('“帮我做个网站”最大的问题是什么？', ['中文不适合 AI', '太模糊，AI 不知道页面类型、内容和标准', '必须用英文', '不能让 AI 做网页'], 1, 'AI 需要具体目标，不然只能猜。'),
+          q('以下哪个提示词最可执行？', ['做个高级点的页面', '帮我优化一下', '创建一个个人介绍页，包含姓名、简介、技能、项目经历，蓝色简洁风格', '做得像别人那样'], 2, '它说明了页面类型、内容和风格。'),
+          q('写页面需求时，“参考风格”的作用是什么？', ['让 AI 完全复制别人网站', '给 AI 一个视觉方向，减少审美偏差', '替代所有内容描述', '让页面不用验收'], 1, '参考风格是方向，不是偷懒替代需求。'),
+          q('下面哪一项不是清晰页面需求的关键要素？', ['页面目标', '内容模块', '样式方向', '用户的出生年份'], 3, '出生年份通常和网页执行需求无关。'),
+          q('如果想要 AI 生成一个可打开的网页，最好补充什么？', ['文件名和技术形式，例如 index.html', '让它自己猜', '只说“做漂亮点”', '不提供任何内容'], 0, '明确交付物能减少 AI 误解。')
+        ]
+      },
+      {
+        id: 4,
+        title: '任务拆解室：别一次塞太多',
+        short: '任务拆解',
+        core: '复杂需求先拆成可验收的小步骤。',
+        difficulty: '中等',
+        bg: ASSET + 'images/levels/level_4_bg.png',
+        item: ASSET + 'images/levels/level_4_item.png',
+        badge: 'planner',
+        mentor: 'thinking',
+        knowledge: [
+          '复杂网页不要一次塞给 AI。先做结构，再做样式，再做交互，最后做适配和细节。',
+          '每一步都要能预览和验收，这样才知道问题出在哪里。',
+          '拆解不是降低目标，而是提高成功率。'
+        ],
+        assignmentTitle: '设计一个可验收的任务路线',
+        assignmentPrompt: '把“个人作品集网站：首页、项目列表、项目详情、联系表单、动画效果、手机适配”拆成 5 步。每一步都要写：让 AI 做什么、完成后你检查什么。',
+        requirements: '必须 5 步；每步包含 AI 任务和用户检查点；顺序必须先结构后样式、交互、适配。',
+        rubric: '5 步完整 25 分；顺序合理 25 分；每步有检查点 35 分；表达清晰 15 分。',
+        hint: '可以按“基础结构、内容补齐、视觉优化、交互功能、移动端适配”来拆。',
+        quiz: [
+          q('为什么不建议一次给 AI 塞 10 个需求？', ['AI 会完全拒绝', '容易遗漏，也很难判断是哪一步出错', '页面一定会更好', '需求越多越稳定'], 1, '需求太多会让结果难以验收。'),
+          q('做网页 Demo 时，最稳的顺序通常是？', ['先动画，再内容，再结构', '先结构，再样式，再交互，再优化', '先部署，再写页面', '先做最复杂功能'], 1, '稳定的顺序能减少返工。'),
+          q('“先做一个能打开的基础版”属于什么策略？', ['迭代式开发', '完美主义', '放弃验收', '随机开发'], 0, '先可用，再变好。'),
+          q('当 AI 漏掉一个功能时，更好的反馈方式是？', ['你怎么又错了', '请补充项目筛选功能，点击分类按钮后只显示对应项目卡片', '重新做', '不对'], 1, '具体说明缺什么和怎么工作。')
+        ]
+      },
+      {
+        id: 5,
+        title: '预览之眼：看懂 AI 做得对不对',
+        short: '验收判断',
+        core: '验收不是只看好不好看，而是看目标是否达成。',
+        difficulty: '中等偏难',
+        bg: ASSET + 'images/levels/level_5_bg.png',
+        item: ASSET + 'images/levels/level_5_item.png',
+        badge: 'preview',
+        mentor: 'guide',
+        knowledge: [
+          '验收要看内容是否完整、布局是否合理、交互是否可用、移动端是否崩、文案是否准确。',
+          '好的验收标准是可检查的，例如“至少 3 个项目卡片”，而不是“更高级”。',
+          '预览后再反馈，能让下一轮修改更准确。'
+        ],
+        assignmentTitle: '把感觉改成检查清单',
+        assignmentPrompt: '请把“页面要好看、完整、能用”改写成 6 条验收标准。每条必须能用“通过/不通过”判断，至少覆盖内容、布局、交互、移动端 4 类。',
+        requirements: '必须 6 条；每条可判断；覆盖内容、布局、交互、移动端；不能只写“好看、高级”。',
+        rubric: '6 条完整 20 分；可判断 35 分；覆盖 4 类 30 分；没有空泛词 15 分。',
+        hint: '把“好看”换成能检查的句子，比如“手机端文字不重叠”。',
+        quiz: [
+          q('验收 AI 生成页面最应该看什么？', ['只看颜色是否漂亮', '看内容、布局、交互、适配是否符合目标', '只看代码行数', '只看 AI 有没有说完成'], 1, '验收要围绕目标，而不是只看表面。'),
+          q('页面能打开，但按钮点了没反应，属于哪类问题？', ['内容问题', '交互问题', '文案问题', '字体问题'], 1, '按钮无响应是交互没有完成。'),
+          q('以下哪条验收标准最清楚？', ['页面好看', '内容丰富', '手机端 375px 宽度下卡片单列显示且文字不重叠', '更高级一点'], 2, '它有场景、布局和判断标准。'),
+          q('如果页面缺少一个模块，反馈时最好包含什么？', ['缺少什么、要补在哪里、补成什么样', '只说“不完整”', '只说“重做”', '不告诉 AI'], 0, '补充位置和样子能让 AI 更准地修改。'),
+          q('为什么要预览页面再继续提需求？', ['预览没有意义', '只有看到实际效果，才能准确判断下一步改什么', 'AI 会自动知道你看到了什么', '预览会让页面变慢'], 1, '看到结果后，反馈才有依据。')
+        ]
+      },
+      {
+        id: 6,
+        title: '修复工坊：把 bug 说清楚',
+        short: 'Bug 反馈',
+        core: '好的 Bug 反馈包含动作、实际效果、期望效果和位置。',
+        difficulty: '中等偏难',
+        bg: ASSET + 'images/levels/level_6_bg.png',
+        item: ASSET + 'images/levels/level_6_item.png',
+        badge: 'bugfix',
+        mentor: 'retry',
+        knowledge: [
+          '不要只说“按钮坏了”。要说你点击了什么、实际发生什么、期望发生什么。',
+          '如果有报错，复制报错并说明什么时候出现。',
+          'Bug 反馈越具体，AI 越容易定位修改。'
+        ],
+        assignmentTitle: '写一条 AI 能修的 Bug 反馈',
+        assignmentPrompt: '场景：页面底部“提交留言”按钮点击后没反应。请写一条完整反馈，必须包含：复现步骤、实际结果、期望结果、问题位置、请 AI 优先检查哪里。',
+        requirements: '必须包含 5 项：复现步骤、实际结果、期望结果、问题位置、检查方向。',
+        rubric: '5 项完整 50 分；描述具体 25 分；检查方向合理 15 分；语气清楚不情绪化 10 分。',
+        hint: '用“我点击了... 实际... 期望... 请检查...”这个结构。',
+        quiz: [
+          q('下面哪条 bug 反馈最有效？', ['有 bug', '不行', '点击“提交留言”按钮后页面没有变化，期望新增一条留言到列表', '你检查一下'], 2, '它描述了动作、实际和期望。'),
+          q('Bug 反馈中的“复现步骤”是指什么？', ['用户喜欢的颜色', '怎样操作会触发这个问题', '页面标题', '代码文件大小'], 1, '复现步骤就是让问题再次出现的操作。'),
+          q('如果浏览器控制台有报错，应该怎么做？', ['忽略', '把报错复制给 AI，并说明什么时候出现', '只说“红字很多”', '关闭电脑'], 1, '报错是定位问题的重要线索。'),
+          q('“实际效果”和“期望效果”的区别是什么？', ['没区别', '实际效果是现在发生的，期望效果是你希望发生的', '实际效果是未来计划', '期望效果是 AI 自己猜的'], 1, '两者的差距就是修复方向。'),
+          q('让 AI 修 bug 时，为什么不要只说“不对”？', ['AI 需要更多上下文才能定位问题', 'AI 不认识中文', '“不对”会让网页关闭', '修 bug 不需要描述'], 0, '上下文越清楚，修复越可靠。')
+        ]
+      },
+      {
+        id: 7,
+        title: '迭代回路：从草稿到作品',
+        short: '迭代优化',
+        core: '第一次生成是草稿，好作品来自多轮聚焦修改。',
+        difficulty: '中等偏难',
+        bg: ASSET + 'images/levels/level_7_bg.png',
+        item: ASSET + 'images/levels/level_7_item.png',
+        badge: 'iteration',
+        mentor: 'challenge',
+        knowledge: [
+          '第一版先可用，第二版补完整，第三版变好看，第四版加交互，最后做适配。',
+          '一次只改一类问题，更容易判断修改是否生效。',
+          '如果新修改破坏旧功能，要说清楚恢复什么、保留什么。'
+        ],
+        assignmentTitle: '安排 3 轮聚焦迭代',
+        assignmentPrompt: '假设 AI 已经做出了一个基础个人网页，但内容少、视觉普通、按钮没交互。请安排 3 轮迭代，每轮只解决一类问题，并写出这一轮完成后的验收方式。',
+        requirements: '必须 3 轮；每轮只解决一类问题；每轮有验收方式；不能写“整体优化”。',
+        rubric: '3 轮完整 25 分；每轮聚焦 30 分；验收方式明确 30 分；顺序合理 15 分。',
+        hint: '可以按“补内容、调视觉、加交互”三轮来写。',
+        quiz: [
+          q('AI 编程里，“第一次生成”的合理期待是什么？', ['永远完美', '一个可继续修改的草稿', '不需要验收', '必须直接上线'], 1, '把第一版当草稿，心态会更稳。'),
+          q('迭代时一次只改一类问题有什么好处？', ['更容易判断修改是否生效', '一定更慢', 'AI 会拒绝', '不需要预览'], 0, '聚焦修改能减少混乱。'),
+          q('以下哪个迭代请求最清楚？', ['再高级一点', '加点感觉', '把项目卡片改成三列布局，增加圆角和阴影，鼠标悬停时上浮 4px', '随便优化'], 2, '它把视觉和交互要求说具体了。'),
+          q('如果第二轮修改把第一轮做好的内容弄丢了，应该怎么反馈？', ['你坏了', '请恢复上一版中的项目经历模块，同时保留这次新增的蓝色主题样式', '直接放弃', '不说明丢了什么'], 1, '说明恢复什么、保留什么，AI 才能修正。'),
+          q('什么时候适合让 AI 做大改版？', ['完全不知道当前问题时', '已经确认基础功能可用，并能清楚说明新版目标时', '每次都适合', '页面打不开时立刻大改版'], 1, '大改版前要先有稳定基础。')
+        ]
+      },
+      {
+        id: 8,
+        title: '毕业挑战：做出你的网页 Demo',
+        short: '毕业 Demo',
+        core: '把主题、用户、模块、风格、交互、验收和迭代计划写成完整需求。',
+        difficulty: '难',
+        bg: ASSET + 'images/ui/exam_mode_bg.png',
+        item: ASSET + 'images/badges/badge_graduate.png',
+        iconClass: 'level-icon-boss',
+        isExam: true,
+        badge: 'graduate',
+        mentor: 'unlock',
+        knowledge: [
+          '最终目标不是在本页面里写代码，而是写出一份能交给 AI 编程工具执行的 Demo 需求。',
+          '完整需求要包含主题、目标用户、内容模块、视觉风格、交互功能、验收标准和迭代计划。',
+          '这份需求会成为你真正开始做网页的第一条高质量指令。'
+        ],
+        assignmentTitle: '提交你的可执行 Demo 需求',
+        assignmentPrompt: '请写一份能直接复制给 AI 编程工具的 Demo 需求。结构必须包含 8 段：项目名称、目标用户、页面模块、视觉风格、交互功能、验收标准、第一轮范围、后续迭代计划。',
+        requirements: '必须包含 8 段；每段要具体；验收标准可检查；第一轮范围不能过大；迭代计划至少 2 轮。',
+        rubric: '8 段完整 32 分；内容具体 24 分；验收可检查 18 分；第一轮范围合理 14 分；迭代计划清楚 12 分。',
+        hint: '先写项目名称和用户，再按模块、风格、交互、验收、迭代依次补齐。',
+        quiz: [
+          q('AI 编程的核心闭环是什么？', ['安装软件 -> 等待上线', '描述目标 -> AI 生成 -> 预览判断 -> 反馈修改 -> 继续迭代', '背代码 -> 写代码 -> 背代码', '只复制别人的网页'], 1, '这是贯穿整门课的核心流程。'),
+          q('复杂网页任务最好怎么做？', ['一次性把所有功能都塞进去', '先做基础结构，再逐步加样式、交互和适配', '不预览直接继续加需求', '只让 AI 自己决定'], 1, '拆解能提高成功率和可验收性。'),
+          q('下面哪条 bug 反馈最清晰？', ['不行', '按钮坏了', '点击“保存”按钮后没有弹出成功提示，期望保存后显示“已保存”', '你再看看'], 2, '它说明了动作、实际和期望。'),
+          q('好的验收标准应该是什么样？', ['页面高级', '用户喜欢', '手机端 375px 宽度下内容不重叠，导航按钮可点击', '有感觉'], 2, '它可检查、可验证。'),
+          q('当你不知道怎么继续时，最好的下一步是？', ['让 AI 随便改', '描述当前结果、目标和卡点，请 AI 给 2-3 个下一步方案', '删除所有文件', '不预览继续加功能'], 1, '把卡点说清楚，AI 才能给可执行建议。')
+        ],
+        final: true
+      }
+    ];
+
+    let state = defaultState();
+    let assignments = {};
+    let currentLevelId = 1;
+    let connected = false;
+    let currentMode = 'challenge';
+    let introIndex = 0;
+    let typingTimer = null;
+
+    function q(text, options, answer, explain) {
+      return { text, options, answer, explain };
+    }
+
+    function defaultState() {
+      const levelState = {};
+      levels.forEach(level => {
+        levelState[level.id] = { read: false, assignmentPassed: false, quizPassed: false, quizAnswers: {}, quizChecked: false, assignmentPoints: 0 };
+      });
+      return { badges: [], levels: levelState, report: '', normalScore: {}, playedVoices: [], exam: defaultExamState() };
+    }
+
+    function loadState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE.state) || 'null');
+        if (saved && saved.levels) state = mergeState(defaultState(), saved);
+      } catch (e) {}
+      try {
+        assignments = JSON.parse(localStorage.getItem(STORAGE.assignments) || '{}');
+      } catch (e) {
+        assignments = {};
+      }
+      AI_CONFIG.model = localStorage.getItem(STORAGE.model) || AI_CONFIG.model;
+      if (!MODEL_OPTIONS[AI_CONFIG.model]) AI_CONFIG.model = 'glm-4.7-flash';
+      const modelSelect = document.getElementById('modelSelect');
+      if (modelSelect) modelSelect.value = AI_CONFIG.model;
+      const remembered = localStorage.getItem(STORAGE.rememberKey) === 'true';
+      const savedKey = remembered ? localStorage.getItem(STORAGE.apiKey) : sessionStorage.getItem(STORAGE.sessionKey);
+      if (savedKey) document.getElementById('apiKey').value = savedKey;
+      document.getElementById('rememberKey').checked = remembered;
+      const offline = isOfflineMode();
+
+      (function migrateModePreference() {
+        const oldMode = localStorage.getItem(STORAGE.mode);
+        if (oldMode === 'easy') {
+          localStorage.setItem(STORAGE.mode, 'learn');
+          console.log('模式已迁移: easy → learn');
+        } else if (oldMode === 'normal') {
+          localStorage.setItem(STORAGE.mode, 'challenge');
+          console.log('模式已迁移: normal → challenge');
+        } else if (oldMode === 'hard') {
+          localStorage.setItem(STORAGE.mode, 'exam');
+          console.log('模式已迁移: hard → exam');
+        }
+      })();
+
+      currentMode = offline ? 'learn' : (localStorage.getItem(STORAGE.mode) || 'challenge');
+      if (!MODES[currentMode]) currentMode = 'challenge';
+      if (currentMode === 'exam') startExamSession();
+      const modeSelect = document.getElementById('modeSelect');
+      if (modeSelect) modeSelect.value = currentMode;
+      connected = offline || (localStorage.getItem(STORAGE.connected) === 'true' && !!savedKey);
+      if (localStorage.getItem(STORAGE.audioLogicVersion) !== '2') {
+        localStorage.setItem(STORAGE.music, 'true');
+        localStorage.setItem(STORAGE.audioLogicVersion, '2');
+      }
+      musicEnabled = localStorage.getItem(STORAGE.music) !== 'false';
+      const savedSpeed = localStorage.getItem(STORAGE.voiceSpeed);
+      if (savedSpeed) voiceSpeed = Number(savedSpeed);
+      syncAudioAvailability();
+      updateMusicButton();
+      if (musicEnabled && canUseAudio()) {
+        updateMusic('launch');
+      }
+      if (connected) enterApp(false);
+      else maybeShowIntro();
+    }
+
+    function mergeState(base, saved) {
+      const merged = {
+        ...base,
+        ...saved,
+        levels: { ...base.levels, ...(saved.levels || {}) },
+        badges: Array.isArray(saved.badges) ? saved.badges : [],
+        playedVoices: Array.isArray(saved.playedVoices) ? saved.playedVoices : [],
+        exam: { ...defaultExamState(), ...(saved.exam || {}) }
+      };
+      Object.keys(merged.levels).forEach(id => {
+        merged.levels[id] = ensureLevelRuntimeState({ ...(base.levels[id] || {}), ...(merged.levels[id] || {}) });
+      });
+      return merged;
+    }
+
+    function ensureLevelRuntimeState(st) {
+      if (!st.quizAnswers) st.quizAnswers = {};
+      if (typeof st.assignmentPoints !== 'number') st.assignmentPoints = st.assignmentPassed ? 1 : 0;
+      return st;
+    }
+
+    function defaultExamState() {
+      return { active: false, submitted: false, textAnswers: {}, textScores: {}, textFeedback: {}, textAttempts: {}, quizAnswers: {}, quizLocked: {}, quizScore: {}, score: 0, total: 0, paperSeed: 1 };
+    }
+
+    function ensureExamState() {
+      if (!state.exam || typeof state.exam !== 'object') state.exam = defaultExamState();
+      state.exam = { ...defaultExamState(), ...state.exam };
+      if (!state.exam.textAnswers) state.exam.textAnswers = {};
+      if (!state.exam.textScores) state.exam.textScores = {};
+      if (!state.exam.textFeedback) state.exam.textFeedback = {};
+      if (!state.exam.textAttempts) state.exam.textAttempts = {};
+      if (!state.exam.quizAnswers) state.exam.quizAnswers = {};
+      if (!state.exam.quizLocked) state.exam.quizLocked = {};
+      if (!state.exam.quizScore) state.exam.quizScore = {};
+      return state.exam;
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE.state, JSON.stringify(state));
+      localStorage.setItem(STORAGE.assignments, JSON.stringify(assignments));
+    }
+
+    function ensureState() {
+      if (!state || typeof state !== 'object') state = defaultState();
+      if (!state.levels || typeof state.levels !== 'object') state.levels = {};
+      levels.forEach(level => {
+        if (!state.levels[level.id]) state.levels[level.id] = {};
+        state.levels[level.id] = ensureLevelRuntimeState({
+          ...defaultState().levels[level.id],
+          ...state.levels[level.id]
+        });
+      });
+      if (!Array.isArray(state.badges)) state.badges = [];
+      if (!Array.isArray(state.playedVoices)) state.playedVoices = [];
+      ensureExamState();
+      return state;
+    }
+
+    function canUnlockNextLevel(levelId) {
+      const mode = getMode();
+      if (currentMode === 'learn' || mode.exam) return true;
+
+      const state = ensureState();
+      const levelState = state.levels[levelId] || {};
+
+      return (
+        levelState.assignmentSubmitted ||
+        levelState.quizSubmitted ||
+        levelState.manuallyMarkedRead ||
+        (levelState.assignmentDraft && levelState.assignmentDraft.trim().length > 0)
+      );
+    }
+
+    function checkAndUnlockNext(currentLevelId) {
+      if (canUnlockNextLevel(currentLevelId)) {
+        const nextLevel = currentLevelId + 1;
+        if (nextLevel <= 8) {
+          const state = ensureState();
+          if (!state.levels[nextLevel]) state.levels[nextLevel] = {};
+          state.levels[nextLevel].unlocked = true;
+          saveState();
+          toast(`🎉 第${nextLevel}关已解锁！`);
+          renderMap();
+        }
+      }
+    }
+
+    function markLevelAsRead(levelId) {
+      const state = ensureState();
+      if (!state.levels[levelId]) state.levels[levelId] = {};
+      state.levels[levelId].manuallyMarkedRead = true;
+      state.levels[levelId].read = true;
+      state.levels[levelId].readTime = Date.now();
+      state.levels[levelId].visited = true;
+      saveState();
+
+      checkAndUnlockNext(levelId);
+      updateLevelIconState(levelId, 'read');
+      renderMap();
+      toast(`✅ 第${levelId}关已标记为已读`);
+    }
+
+    function updateLevelIconState(levelId, action) {
+      const state = ensureState();
+      if (!state.levels[levelId]) state.levels[levelId] = {};
+
+      switch(action) {
+        case 'visit':
+          state.levels[levelId].visited = true;
+          break;
+        case 'complete':
+          state.levels[levelId].visited = true;
+          break;
+        case 'read':
+          state.levels[levelId].visited = true;
+          state.levels[levelId].manuallyMarkedRead = true;
+          state.levels[levelId].read = true;
+          break;
+      }
+
+      saveState();
+    }
+
+    function getLevelState(levelId) {
+      const state = ensureState();
+      const levelState = state.levels[levelId] || {};
+      const mode = getMode();
+
+      if (currentMode === 'learn') {
+        if (levelState.read ||
+            levelState.manuallyMarkedRead ||
+            levelState.assignmentPassed ||
+            levelState.quizPassed) {
+          return 'state-completed';
+        }
+        return levelState.visited || levelId === currentLevelId ? 'state-active' : 'state-open';
+      }
+
+      if (levelState.manuallyMarkedRead ||
+          levelState.assignmentSubmitted ||
+          levelState.quizSubmitted) {
+
+        const score = (levelState.assignmentScore || 0) + (levelState.quizScore || 0);
+        const maxScore = 2 + (getQuizCount(levelId) || 0);
+
+        if (score >= maxScore * 0.9) return 'state-perfect';
+        return 'state-completed';
+      }
+
+      if (levelState.visited) return 'state-active';
+
+      return 'state-locked';
+    }
+
+    function getStateBadge(levelId) {
+      const state = getLevelState(levelId);
+      const badges = {
+        'state-locked': '🔒 未解锁',
+        'state-open': '📘 可学习',
+        'state-active': '🔵 进行中',
+        'state-completed': '✅ 已完成',
+        'state-perfect': '⭐ 优秀'
+      };
+      return badges[state] ? `<span class="state-badge">${badges[state]}</span>` : '';
+    }
+
+    function getQuizCount(levelId) {
+      const level = getLevel(levelId);
+      return level ? level.quiz.length : 0;
+    }
+
+    function generateAutoHints(level) {
+      const lesson = LESSONS[level.id] || {};
+      const knowledge = level.knowledge || ['人AI协作'];
+
+      return [
+        `这道题考查"${lesson.why?.substring(0, 30) || level.core}"相关内容。重点回忆：${knowledge[0]}`,
+        `你可以从这几个角度组织答案：\n1. 先说明背景/场景\n2. 列出具体要点\n3. 给出你的理由\n4. 如有可能举例说明`,
+        `${lesson.example?.substring(0, 150) || '一个好的回答应该是具体、可操作、有明确标准的...'}`
+      ];
+    }
+
+    function renderHints(level, mode) {
+      if (!level.hints) {
+        level.hints = generateAutoHints(level);
+      }
+
+      const hints = level.hints;
+
+      return `
+        <div class="hints-system">
+          <div class="hint hint-level-1 visible">
+            <span class="hint-icon">💡</span>
+            <strong>思考方向：</strong>${hints[0]}
+          </div>
+
+          ${mode.showAnswers || mode.learn ? `
+            <div class="hint hint-level-2 visible">
+              <span class="hint-icon">📝</span>
+              <strong>回答框架：</strong>${hints[1]}
+            </div>
+            <div class="hint hint-level-3 example">
+              <span class="hint-icon">🎯</span>
+              <strong>参考示例：</strong>
+              <div class="example-content">${hints[2]}</div>
+            </div>
+          ` : `
+            <button class="btn ghost btn-sm reveal-hint-btn" onclick="revealHint(this)">
+              显示提示
+            </button>
+            <div class="hint hint-level-2 hidden">
+              <span class="hint-icon">💡</span>
+              ${hints[1]}
+            </div>
+          `}
+        </div>
+      `;
+    }
+
+    function revealHint(btn) {
+      const hintBox = btn.nextElementSibling;
+      if (hintBox) {
+        hintBox.classList.remove('hidden');
+        btn.style.display = 'none';
+      }
+    }
+
+    function resetExamState() {
+      state.exam = defaultExamState();
+    }
+
+    function startExamSession() {
+      state.exam = defaultExamState();
+      state.exam.active = true;
+      state.exam.paperSeed = Date.now();
+      setMentor('challenge', '考试模式已开启。本次试卷会重新组题，切出考试模式会清空成绩。');
+    }
+
+    function getMode() {
+      return MODES[currentMode] || MODES.challenge;
+    }
+
+    function isOfflineMode() {
+      return localStorage.getItem(STORAGE.offline) === 'true';
+    }
+
+    function hasAIKey() {
+      return !isOfflineMode() && Boolean(getApiKey());
+    }
+
+    function canUseAudio() {
+      return true;
+    }
+
+    function canUseVoiceKey(key) {
+      if (!key) return false;
+      return !AI_REQUIRED_VOICE_KEYS.has(key) || hasAIKey();
+    }
+
+    function syncAudioAvailability() {
+      const panel = document.getElementById('audioControlPanel');
+      if (panel) panel.classList.remove('hidden');
+      if (currentVoiceKey && !canUseVoiceKey(currentVoiceKey)) {
+        if (currentVoice) {
+          currentVoice.pause();
+          currentVoice.currentTime = 0;
+        }
+        currentVoiceKey = '';
+      }
+      return true;
+    }
+
+    function changeMode(mode) {
+      if (!MODES[mode]) return;
+      playSound('click');
+      const previousMode = currentMode;
+      if (previousMode === 'exam' && mode !== 'exam') {
+        if (!confirm('切出考试模式会清空本次考试记录，确定要离开吗？')) {
+          const modeSelect = document.getElementById('modeSelect');
+          if (modeSelect) modeSelect.value = previousMode;
+          return;
+        }
+        resetExamState();
+      }
+      currentMode = mode;
+      if (mode === 'exam' && previousMode !== 'exam') startExamSession();
+      localStorage.setItem(STORAGE.mode, mode);
+      const modeSelect = document.getElementById('modeSelect');
+      if (modeSelect) modeSelect.value = mode;
+      toast('已切换到' + getMode().label + '模式：' + getMode().desc);
+      if (connected) renderAll();
+      updateMusic();
+      if (mode === 'exam') playVoiceByKey('examIntro');
+    }
+
+    function changeModel(model) {
+      if (!MODEL_OPTIONS[model]) return;
+      playSound('click');
+      AI_CONFIG.model = model;
+      localStorage.setItem(STORAGE.model, model);
+      const desc = MODEL_OPTIONS[model].desc;
+      setNotice('gateNotice', '当前模型：' + model + '。' + desc, model === 'glm-5.1' ? '' : 'success');
+      toast('已切换模型：' + model);
+      if (connected) renderTopbar();
+    }
+
+    function maybeShowIntro() {
+      if (localStorage.getItem(STORAGE.introSeen) === 'true') return;
+      introIndex = 0;
+      document.getElementById('introOverlay').classList.add('show');
+      typeIntroLine(introLines[introIndex]);
+    }
+
+    function typeIntroLine(text) {
+      clearInterval(typingTimer);
+      const el = document.getElementById('introTyping');
+      el.textContent = '';
+      let i = 0;
+      typingTimer = setInterval(() => {
+        el.textContent = text.slice(0, i);
+        i++;
+        if (i > text.length) clearInterval(typingTimer);
+      }, 28);
+    }
+
+    function nextIntroLine() {
+      playSound('click');
+      introIndex++;
+      if (introIndex >= introLines.length) {
+        finishIntro();
+        return;
+      }
+      typeIntroLine(introLines[introIndex]);
+    }
+
+    function finishIntro() {
+      playSound('open');
+      playVoiceByKey('opening');
+      clearInterval(typingTimer);
+      localStorage.setItem(STORAGE.introSeen, 'true');
+      document.getElementById('introOverlay').classList.remove('show');
+    }
+
+    function getApiKey() {
+      return document.getElementById('apiKey').value.trim() || sessionStorage.getItem(STORAGE.sessionKey) || localStorage.getItem(STORAGE.apiKey) || '';
+    }
+
+    function enterOfflineMode() {
+      localStorage.setItem(STORAGE.offline, 'true');
+      localStorage.setItem(STORAGE.connected, 'true');
+      currentMode = 'learn';
+      localStorage.setItem(STORAGE.mode, 'learn');
+      connected = true;
+      syncAudioAvailability();
+      setNotice('gateNotice', '已进入学习模式：开放全部关卡、参考答案和本地保存；AI 点评与实时问答需要连接 Key。', 'success');
+      setMentor('guide', '学习模式已开启。你可以自由浏览关卡、看参考答案，也可以先把作业草稿写下来。');
+      setTimeout(() => enterApp(true), 260);
+    }
+
+    async function connectApi() {
+      playSound('click');
+      const key = document.getElementById('apiKey').value.trim();
+      const remember = document.getElementById('rememberKey').checked;
+      const btn = document.getElementById('testKeyBtn');
+      const notice = document.getElementById('gateNotice');
+      if (!key) {
+        setNotice('gateNotice', '请先输入智谱 API Key。', 'error');
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = '连接中...';
+      playSound('connecting');
+      setNotice('gateNotice', '正在连接 ' + AI_CONFIG.model + '，请稍等。', '');
+      try {
+        const text = await callAI([
+          { role: 'system', content: '你是 AI 编程伴学导师 星星学长。请用 20 字以内欢迎用户进入 AI 编程训练营。不要提 API Key。' },
+          { role: 'user', content: '测试连接。' }
+        ], { key, temperature: 0.3, max_tokens: 80 });
+        if (remember) {
+          localStorage.setItem(STORAGE.apiKey, key);
+          localStorage.setItem(STORAGE.rememberKey, 'true');
+          sessionStorage.removeItem(STORAGE.sessionKey);
+        } else {
+          sessionStorage.setItem(STORAGE.sessionKey, key);
+          localStorage.removeItem(STORAGE.apiKey);
+          localStorage.setItem(STORAGE.rememberKey, 'false');
+        }
+        localStorage.removeItem(STORAGE.offline);
+        localStorage.setItem(STORAGE.connected, 'true');
+        connected = true;
+        syncAudioAvailability();
+        awardBadge('launcher');
+        playSound('success');
+        setNotice('gateNotice', text || '连接成功，训练营启动。', 'success');
+        setMentor('happy', '连接成功。现在从第一关开始，完成阅读、作业和满分测验。');
+        playVoiceByKey('mode');
+        setTimeout(() => enterApp(true), 380);
+      } catch (err) {
+        playSound('fail');
+        setNotice('gateNotice', formatApiError(err), 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '测试连接并进入';
+      }
+    }
+
+    function formatApiError(err) {
+      const msg = String(err && err.message ? err.message : err);
+      const lower = msg.toLowerCase();
+      if (lower.includes('failed to fetch')) return '连接失败：浏览器可能拦截了跨域请求，或网络不可用。Key 没有通过测试。';
+      if (lower.includes('401') || lower.includes('403')) return '连接失败：请检查 API Key 是否正确或是否有权限使用 ' + AI_CONFIG.model + '。';
+      if (lower.includes('429') || lower.includes('insufficient') || lower.includes('balance') || lower.includes('quota') || msg.includes('余额') || msg.includes('额度')) {
+        if (AI_CONFIG.model === 'glm-5.1') return '连接失败：glm-5.1 可能需要账号余额。请确认智谱账号余额，或先切回 glm-4.7-flash 练习。';
+        return '连接失败：glm-4.7-flash 本次被服务端限流或模型权限未开通。建议稍后再试，或先进入学习模式。';
+      }
+      return '连接失败：' + msg;
+    }
+
+    function setNotice(id, text, type) {
+      const el = document.getElementById(id);
+      el.textContent = text;
+      el.className = 'notice' + (type ? ' ' + type : '');
+    }
+
+    function clearSavedKey() {
+      playSound('click');
+      localStorage.removeItem(STORAGE.apiKey);
+      localStorage.removeItem(STORAGE.rememberKey);
+      localStorage.removeItem(STORAGE.connected);
+      localStorage.removeItem(STORAGE.offline);
+      sessionStorage.removeItem(STORAGE.sessionKey);
+      document.getElementById('apiKey').value = '';
+      document.getElementById('rememberKey').checked = false;
+      connected = false;
+      syncAudioAvailability();
+      setNotice('gateNotice', '本地 Key 已清除。', 'success');
+      toast('本地 Key 已清除');
+      playSound('close');
+    }
+
+    function enterApp(withSound) {
+      if (withSound) playSound('open');
+      tipsHidden = false;
+      document.getElementById('gate').classList.add('hidden');
+      document.getElementById('app').classList.remove('hidden');
+      const firstOpen = getMaxUnlockedLevel();
+      if (!isUnlocked(currentLevelId)) currentLevelId = firstOpen;
+      updateTips();
+      startTipsTicker();
+      renderAll();
+      updateMusic();
+      playLevelVoice(currentLevelId);
+    }
+
+    function showGate() {
+      playSound('click');
+      document.getElementById('gate').classList.remove('hidden');
+      document.getElementById('app').classList.add('hidden');
+      stopTipsTicker();
+      updateMusic('launch');
+    }
+
+    async function callAI(messages, opts = {}) {
+      const key = opts.key || getApiKey();
+      if (!key) throw new Error('缺少 API Key');
+      const res = await fetch(AI_CONFIG.endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + key
+        },
+        body: JSON.stringify({
+          model: AI_CONFIG.model,
+          messages,
+          temperature: opts.temperature ?? 0.7,
+          max_tokens: opts.max_tokens ?? 1200,
+          stream: false
+        })
+      });
+      const raw = await res.text();
+      if (!res.ok) throw new Error(res.status + ' ' + raw.slice(0, 240));
+      let data;
+      try { data = JSON.parse(raw); } catch (e) { throw new Error('模型返回不是 JSON：' + raw.slice(0, 120)); }
+      return data.choices?.[0]?.message?.content || '';
+    }
+
+    function renderAll() {
+      ensureExamState();
+      renderTopbar();
+      renderMap();
+      renderBadges();
+      renderMission();
+      updateTips();
+      bindRailDrawer();
+      bindHoverSound();
+      saveState();
+    }
+
+    function renderTopbar() {
+      document.getElementById('badgeText').textContent = state.badges.length + ' / ' + badges.length;
+      document.getElementById('badgeMiniText').textContent = state.badges.length + ' 已获得';
+      document.getElementById('progressText').textContent = getCompletedCount() + ' / ' + levels.length;
+      document.getElementById('scoreText').textContent = getScoreLabel();
+      document.getElementById('keyStatus').textContent = hasAIKey() ? '已连接' : '无 Key';
+      const modeSelect = document.getElementById('modeSelect');
+      if (modeSelect) modeSelect.value = currentMode;
+      const modelSelect = document.getElementById('modelSelect');
+      if (modelSelect) modelSelect.value = AI_CONFIG.model;
+      const topModelSelect = document.getElementById('topModelSelect');
+      if (topModelSelect) topModelSelect.value = AI_CONFIG.model;
+    }
+
+    function renderMap() {
+      const box = document.getElementById('levelMap');
+      if (getMode().exam) {
+        box.innerHTML = `
+          <div class="level-node active">
+            <div class="level-icon-wrap"><span class="level-node-icon">考</span></div>
+            <div>
+              <h4>考试中心</h4>
+              <p>重新组卷 · 切出清空</p>
+              <div class="level-score"><strong>${getCurrentScore().score}</strong><span>/ ${getCurrentScore().total} 分</span></div>
+            </div>
+          </div>
+        `;
+        return;
+      }
+      box.innerHTML = levels.map(level => {
+        const unlocked = isUnlocked(level.id);
+        const done = isLevelComplete(level.id);
+        const active = currentLevelId === level.id;
+        const nodeImg = level.item || ASSET + 'images/levels/level_1_item.png';
+        const score = getLevelScore(level);
+        const stateClass = getLevelState(level.id);
+        return `
+          <div class="level-node ${stateClass} ${active ? 'active' : ''} ${done ? 'done' : ''} ${unlocked ? '' : 'locked'} sfx-hover" onclick="${unlocked ? `selectLevel(${level.id})` : `toast('请先完成前一关')`}">
+            <div class="level-icon-wrap"><img src="${nodeImg}" alt="${escapeHtml(level.short)}"></div>
+            <div>
+              <h4>${level.id}. ${escapeHtml(level.short)}</h4>
+              <p>${escapeHtml(level.difficulty)} · ${getMode().label} · ${unlocked ? (done ? '已完成' : '已解锁') : '未解锁'}</p>
+              ${getStateBadge(level.id)}
+              <div class="level-score">${currentMode === 'learn' ? '<strong>不计分</strong>' : '<strong>' + score.score + '</strong><span>/ ' + score.total + ' 分</span>'}</div>
+              <div class="stars">${getStars(level.id)}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderBadges() {
+      const box = document.getElementById('badgeGrid');
+      box.innerHTML = badges.map(badge => {
+        const earned = state.badges.includes(badge.id);
+        return `<div class="badge ${earned ? 'earned' : ''}" title="${badge.name}"><img src="${badge.img}" alt="${badge.name}"></div>`;
+      }).join('');
+    }
+
+    function renderMission() {
+      const level = getLevel(currentLevelId);
+      const st = state.levels[level.id];
+      const mode = getMode();
+      if (mode.exam) {
+        renderExamMission();
+        return;
+      }
+      setMentor(level.mentor, getMentorLine(level));
+      const assignment = assignments[level.id] || {};
+      const answerText = assignment.text || '';
+      const resultHtml = assignment.feedback ? `<div class="assignment-result ${assignment.pass ? 'pass' : 'fail'}">${escapeHtml(assignment.feedback)}</div>` : '';
+      const finalTools = level.final && isLevelComplete(level.id) ? `
+        <details class="section-block" open>
+          <summary>结业报告</summary>
+          <div class="detail-body">
+          <p>你已经完成主线。可以让星星学长根据你的作业生成一份学习总结。</p>
+          <div class="section-actions">
+            <button class="btn warn sfx-hover" onclick="generateReport()">生成结业报告</button>
+            <button class="btn secondary sfx-hover" onclick="copyFinalPrompt()">复制最终 Demo 提示词</button>
+          </div>
+          ${state.report ? `<div class="report-box">${escapeHtml(state.report)}</div>` : ''}
+          </div>
+        </details>
+      ` : '';
+      document.getElementById('missionPanel').innerHTML = `
+        <div class="mission-hero" style="background-image:url('${level.bg}')">
+          <div class="mission-hero-content">
+            <div class="mission-tags">
+              <span class="tag">第 ${level.id} 关</span>
+              <span class="tag">${escapeHtml(level.difficulty)}</span>
+              <span class="tag">${escapeHtml(mode.label)}模式</span>
+              <span class="tag">${getStars(level.id)}</span>
+            </div>
+            <h2>${escapeHtml(level.title)}</h2>
+            <p>${escapeHtml(level.core)}</p>
+            <p><strong>本关目标：</strong>${escapeHtml((LESSONS[level.id] || {}).proof || level.requirements)}</p>
+            ${renderScoreTiles(level)}
+          </div>
+        </div>
+
+        ${renderVoicePanel(level)}
+
+        <div class="mission-grid">
+          <div>
+            <details class="section-block lesson-step" ${!st.read ? 'open' : ''}>
+              <summary><span class="summary-title">本关讲解与案例</span><span class="summary-hint">点击展开</span></summary>
+              <div class="detail-body">
+              ${renderLesson(level)}
+              <div class="section-actions">
+                <button class="btn ${st.read ? 'secondary' : ''} sfx-hover" onclick="markRead(${level.id})">${st.read ? '已标记阅读' : '标记已读'}</button>
+                <button class="btn ghost btn-sm sfx-hover" onclick="markLevelAsRead(${level.id})" title="标记本关已阅读并跳过答题">📖 标记已读并继续</button>
+                <button class="btn secondary sfx-hover" onclick="askLevelSummary()">让星星学长总结本关</button>
+              </div>
+              </div>
+            </details>
+
+            <details class="section-block lesson-step" id="assignmentBlock" ${st.read && !st.assignmentPassed ? 'open' : ''}>
+              <summary><span class="summary-title">理解验证：${escapeHtml(level.assignmentTitle)}</span><span class="summary-hint">点击展开</span></summary>
+              <div class="detail-body">
+              <div class="quiz-feedback"><strong>文本作业计分：</strong>有回答记 1 分；星星学长判断回答充分记 2 分。简单模式不计分。</div>
+              <p>${escapeHtml(level.assignmentPrompt)}</p>
+              ${renderHints(level, mode)}
+              ${mode.showAnswers ? `<div class="quiz-feedback"><strong>参考写法：</strong>${escapeHtml(getAssignmentExample(level))}</div>` : ''}
+              <div class="field" style="margin-top:12px;">
+                <label for="assignmentText">你的作业</label>
+                <textarea id="assignmentText" onfocus="focusAssignmentText()" placeholder="${hasAIKey() ? '把你的答案写在这里，提交后星星学长会评分。' : '把你的答案写在这里，无 Key 模式会先保存并给自查提示。'}">${escapeHtml(answerText)}</textarea>
+              </div>
+              <div class="section-actions">
+                <button class="btn sfx-hover" id="submitAssignmentBtn" onclick="submitAssignment(${level.id})">${hasAIKey() ? '提交给星星学长点评' : '保存并点亮作业星'}</button>
+                <button class="btn secondary sfx-hover" onclick="saveAssignmentDraft(${level.id})">保存草稿</button>
+              </div>
+              ${resultHtml}
+              ${renderMentorScoreCard(level)}
+              </div>
+            </details>
+
+            <details class="section-block lesson-step" id="quizBlock" ${st.assignmentPassed && (!st.quizPassed || st.quizChecked) ? 'open' : ''}>
+              <summary><span class="summary-title">选择题练习</span><span class="summary-hint">点击展开</span></summary>
+              <div class="detail-body">
+              <p>${escapeHtml(getQuizInstruction(level))}</p>
+              <div class="quiz-feedback"><strong>选择题计分：</strong>第一次提交后记录得分；答错会显示解释，之后修改用于学习复盘，不重新加分。</div>
+              <div class="quiz-list">${renderQuiz(level)}</div>
+              <div class="section-actions">
+                <button class="btn warn sfx-hover" onclick="submitQuiz(${level.id})">提交测验</button>
+                <button class="btn secondary sfx-hover" onclick="resetQuiz(${level.id})">重做本关测验</button>
+              </div>
+              <div id="quizSummary">${renderQuizSummary(level)}</div>
+              </div>
+            </details>
+
+            ${renderUnlockPanel(level)}
+            ${finalTools}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderLesson(level) {
+      const content = LESSONS[level.id] || {};
+      return `
+        <div class="deep-lesson">
+          <div class="lesson-card">
+            <h4>为什么要学这个</h4>
+            <p>${escapeHtml(content.why || level.core)}</p>
+          </div>
+          <div class="lesson-card">
+            <h4>你要记住的原则</h4>
+            <ul>${level.knowledge.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+          </div>
+          <div class="lesson-card">
+            <h4>真实案例</h4>
+            <p>${escapeHtml(content.case || getLevelSideText(level))}</p>
+            ${content.example ? `<div class="lesson-example">${escapeHtml(content.example)}</div>` : ''}
+          </div>
+          <div class="lesson-card">
+            <h4>常见误区</h4>
+            <p>${escapeHtml(content.trap || '不要只让 AI 自己猜你的目标。把目标、约束和验收标准说清楚，AI 才能稳定帮你做事。')}</p>
+          </div>
+          <div class="lesson-card">
+            <h4>本关行动</h4>
+            <p>${escapeHtml(content.action || level.assignmentPrompt)}</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function getLevelVoiceKey(level) {
+      const direct = TTS.levels[level.id] ? 'level:' + level.id : '';
+      if (direct) return direct;
+      return 'opening';
+    }
+
+    function getVoiceMeta(key) {
+      if (!key) return null;
+      if (key.startsWith('level:')) return TTS.levels[Number(key.split(':')[1])];
+      return TTS[key] || null;
+    }
+
+    function renderVoicePanel(level) {
+      const key = getLevelVoiceKey(level);
+      if (!canUseVoiceKey(key)) return '';
+      const voice = getVoiceMeta(key);
+      if (!voice) return '';
+      return `
+        <div class="voice-panel">
+          <div class="voice-head">
+            <h3>星星学长旁白：${escapeHtml(voice.title)}</h3>
+            <span class="voice-state" id="voiceState">${currentVoiceKey === key && currentVoice && !currentVoice.paused ? '播放中' : '可播放'}</span>
+          </div>
+          <div class="voice-text">${escapeHtml(voice.text)}</div>
+          <div class="voice-actions">
+            <button class="btn sfx-hover" onclick="playVoiceByKey('${escapeHtml(key)}')">播放旁白</button>
+            <button class="btn secondary sfx-hover" onclick="pauseVoice()">暂停</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderScoreTiles(level) {
+      const score = getLevelScore(level);
+      const total = getCurrentScore();
+      return `
+        <div class="score-grid">
+          <div class="score-tile"><strong>${score.assignment} / 2</strong><span>文本作业</span></div>
+          <div class="score-tile"><strong>${score.quiz} / ${level.quiz.length}</strong><span>选择题</span></div>
+          <div class="score-tile"><strong>${currentMode === 'learn' ? '不计分' : total.score + ' / ' + total.total}</strong><span>当前模式总分</span></div>
+        </div>
+      `;
+    }
+
+    function renderMentorScoreCard(level) {
+      const assignment = assignments[level.id] || {};
+      if (!assignment.feedback && !state.levels[level.id].assignmentPoints) return '';
+      const points = getAssignmentPoints(level);
+      const text = points >= 2 ? '回答充分，拿到文本作业满分。' : points === 1 ? '已有回答，拿到基础分；继续补例子和验收标准可以冲 2 分。' : '还没有文本作业得分。';
+      return `<div class="mentor-score-card"><strong>星星学长评分：</strong>${points} / 2 分。${escapeHtml(text)}</div>`;
+    }
+
+    function renderExamMission() {
+      const exam = ensureExamState();
+      const paper = buildExamPaper();
+      const total = getExamTotal();
+      const score = exam.submitted ? exam.score : getExamDraftScore();
+      setMentor('challenge', exam.submitted ? '考试已提交，可以看错题解释。切出考试模式会清空本次考试。' : '考试模式已开启。认真作答，提交后显示正确答案和成绩。');
+      document.getElementById('missionPanel').innerHTML = `
+        <div class="mission-hero exam-hero">
+          <div class="mission-hero-content">
+            <div class="mission-tags">
+              <span class="tag">考试模式</span>
+              <span class="tag">重新组卷</span>
+              <span class="tag">${score} / ${total} 分</span>
+            </div>
+            <h2>AI 编程入门考试</h2>
+            <p>这份试卷会综合考察需求表达、任务拆解、验收判断、Bug 反馈和迭代协作。切出考试模式会清空本次考试记录。</p>
+            <p><strong>建议目标：</strong>考试模式 90 分以上；普通练习建议满分。当前页面只记录分数，不强制拦截。</p>
+          </div>
+        </div>
+        ${renderExamVoicePanel()}
+        <div class="exam-panel">
+          <div class="score-grid">
+            <div class="score-tile"><strong>${score} / ${total}</strong><span>考试得分</span></div>
+            <div class="score-tile"><strong>${total ? Math.round(score / total * 100) : 0}%</strong><span>当前正确率</span></div>
+            <div class="score-tile"><strong>${exam.submitted ? '已提交' : '答题中'}</strong><span>考试状态</span></div>
+          </div>
+          <div class="section-actions" style="margin-top:12px;">
+            <button class="btn warn sfx-hover" onclick="submitExam()">提交考试</button>
+            <button class="btn secondary sfx-hover" onclick="restartExam()">重新组卷</button>
+          </div>
+        </div>
+        <details class="section-block" open>
+          <summary>文本作业题</summary>
+          <div class="detail-body">
+            <p>问答题可单独提交检查。无 Key 时有输入记基础分；有 Key 时由星星学长按答案质量评分。每题最多修改重评一次。</p>
+            <div class="exam-paper">${paper.text.map(renderExamTextQuestion).join('')}</div>
+          </div>
+        </details>
+        <details class="section-block" open>
+          <summary>选择题</summary>
+          <div class="detail-body"><div class="quiz-list">${paper.quiz.map(renderExamQuizQuestion).join('')}</div></div>
+        </details>
+      `;
+    }
+
+    function renderExamVoicePanel() {
+      const exam = ensureExamState();
+      const key = exam.submitted ? 'examResult' : 'examIntro';
+      if (!canUseVoiceKey(key)) return '';
+      const voice = getVoiceMeta(key);
+      if (!voice) return '';
+      return `
+        <div class="voice-panel">
+          <div class="voice-head">
+            <h3>星星学长旁白：${escapeHtml(voice.title)}</h3>
+            <span class="voice-state" id="voiceState">${currentVoiceKey === key && currentVoice && !currentVoice.paused ? '播放中' : '可播放'}</span>
+          </div>
+          <div class="voice-text">${escapeHtml(voice.text)}</div>
+          <div class="voice-actions">
+            <button class="btn sfx-hover" onclick="playVoiceByKey('${escapeHtml(key)}')">播放旁白</button>
+            <button class="btn secondary sfx-hover" onclick="pauseVoice()">暂停</button>
+            <select id="voiceSpeedSelect" onchange="setVoiceSpeed(Number(this.value))" style="padding: 6px 10px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); color: var(--text); cursor: pointer;">
+              <option value="0.75" ${voiceSpeed === 0.75 ? 'selected' : ''}>0.75x</option>
+              <option value="1" ${voiceSpeed === 1 ? 'selected' : ''}>1x</option>
+              <option value="1.2" ${voiceSpeed === 1.2 ? 'selected' : ''}>1.2x</option>
+              <option value="1.5" ${voiceSpeed === 1.5 ? 'selected' : ''}>1.5x</option>
+              <option value="2" ${voiceSpeed === 2 ? 'selected' : ''}>2x</option>
+            </select>
+          </div>
+        </div>
+      `;
+    }
+
+    function buildExamPaper() {
+      const seed = ensureExamState().paperSeed || 1;
+      return {
+        text: rotateItems(getExamTextQuestions(), seed),
+        quiz: rotateItems(getExamQuizQuestions(), seed + 2)
+      };
+    }
+
+    function rotateItems(items, seed) {
+      if (!items.length) return items;
+      const offset = Math.abs(Number(seed || 0)) % items.length;
+      return items.slice(offset).concat(items.slice(0, offset));
+    }
+
+    const EXAM_TEXT_QUESTIONS = [
+        {
+          id: 'exam_ai_role_clarification',
+          title: '明确人AI分工边界',
+          prompt: `假设你要让AI帮你制作一个"个人作品集网站"。请用4-6句话清晰写出：
+
+1. 你（人类）具体负责哪些事情？
+2. AI负责生成/处理什么？
+3. 你们如何协作完成这个任务？（描述交互过程）
+4. 最终交付物是什么格式？
+
+请结合第1关"AI编程到底是什么"的知识点来回答。`,
+          rubric: '能清楚区分职责边界，提到具体协作动作，理解人机互补关系'
+        },
+        {
+          id: 'exam_tool_agnostic_workflow',
+          title: '工具无关的核心流程',
+          prompt: `如果你现在用Trae写代码，下个月团队决定换到Cursor或Claude Code，哪些动作是通用的、不需要重新学习的？
+
+请列出至少4个通用步骤，并为每个步骤说明为什么它与具体工具无关。
+
+参考第2关"工具迁移"的内容。`,
+          rubric: '识别出打开项目、描述任务、预览结果、反馈修改等核心流程，不能只写“DONE”。'
+        },
+        {
+          id: 'bug-report',
+          title: '写一条 AI 能修的 Bug 反馈',
+          prompt: '场景：手机端打开页面时，价格卡片互相重叠，点击“立即报名”按钮也没有反应。请写一条完整反馈给 AI，包含复现环境、操作步骤、实际结果、期望结果和优先检查方向。',
+          rubric: '高分答案会说明设备/宽度、问题位置、期望行为和排查方向。'
+        },
+        {
+          id: 'iteration-plan',
+          title: '规划三轮聚焦迭代',
+          prompt: 'AI 做出了一个能打开但很粗糙的网页：内容少、视觉普通、按钮没交互。请设计 3 轮迭代，每轮只解决一类问题，并写出每轮完成后的验收方法。',
+          rubric: '高分答案要体现先内容/结构，再视觉，再交互或适配，且每轮都有验收。'
+        }
+    ];
+
+    const EXAM_QUIZ_QUESTIONS = [
+      q('你让 AI “做一个高级的网站”，AI 生成了深色渐变和很多动画，但没有你的项目内容。最关键的问题是什么？', ['模型审美不稳定，所以只能换模型', '原需求没有定义内容、用户和验收标准，AI 只能猜“高级”', '应该直接要求它多加动画', '网页必须先写后端'], 1, '“高级”如果没有被翻译成内容、风格和验收标准，AI 很容易只做表面效果。'),
+      q('下面哪条最适合作为 AI 编程任务的第一轮指令？', ['先做一个完整商业网站，所有功能都要有', '创建一个可打开的 index.html，先完成首页结构、3 个内容模块和基础样式，暂不做复杂交互', '随便发挥，越酷越好', '直接上线部署'], 1, '第一轮应该控制范围，让结果先可打开、可检查。'),
+      q('页面按钮点击没反应时，哪条反馈最有助于 AI 修复？', ['按钮坏了', '不行，重做', '在手机端点击“报名”按钮没有任何反馈，期望弹出报名表，请检查按钮事件绑定和表单弹窗逻辑', '你自己看看'], 2, '有效 Bug 反馈包含环境、动作、实际、期望和排查方向。'),
+      q('学生想从 Trae 换到 Codex 或 Claude Code，最应该迁移的是什么？', ['按钮位置记忆', '工具图标颜色', '打开项目、描述任务、预览结果、反馈修改这套流程', '只迁移截图'], 2, 'AI 编程的核心是协作流程，不是某个工具界面。'),
+      q('验收标准“页面要好看”最大的问题是什么？', ['太短', '不可检查，无法判断通过或不通过', '不能用中文', '没有要求加阴影'], 1, '验收标准必须能被检查，最好包含场景、数量、状态或尺寸。'),
+      q('一次让 AI 同时改内容、视觉、动画、表单、移动端和部署，最可能的问题是什么？', ['AI 会完全无法工作', '结果难以验收，也难判断哪一步导致问题', '一定比拆开更快', '只会影响颜色'], 1, '复杂任务要拆成可验收的小步骤。'),
+      q('AI 做出的页面在桌面端正常，但手机端按钮被卡片遮住了，下一步最该怎么反馈？', ['只说手机端不行', '说明屏幕宽度、被遮住的按钮位置、期望布局，并要求检查响应式样式', '直接让 AI 换颜色', '删除所有卡片'], 1, '移动端问题要说明环境、位置、实际效果和期望布局，AI 才能定位。'),
+      q('如果 AI 修改后把之前做好的项目卡片删掉了，最好的反馈是？', ['你怎么又错了', '请恢复上一版的 3 个项目卡片，同时保留这次新增的蓝绿色视觉风格', '全部重做', '不好看'], 1, '说明恢复什么、保留什么，AI 才能减少二次破坏。'),
+      q('让 AI 增加一个报名表单时，哪条需求最容易被实现和验收？', ['加个表单', '页面底部新增报名表单，包含姓名、手机号、课程选择和提交按钮，提交后显示“已收到”提示', '做得专业一点', '表单越复杂越好'], 1, '清楚列出字段、位置和提交后的状态，结果才可检查。'),
+      q('AI 生成页面后内容太空，最有效的下一轮指令是什么？', ['丰富一点', '为首页补充 3 个课程卖点、2 个学员案例和一个常见问题区，并保持当前视觉风格', '随便多写点', '重新开始'], 1, '补内容时要说明新增模块、数量和保留约束。')
+    ].map((item, idx) => ({ ...item, id: 'exam-q-' + idx }));
+
+    function getExamTextQuestions() {
+      return EXAM_TEXT_QUESTIONS;
+    }
+
+    function getExamQuizQuestions() {
+      return EXAM_QUIZ_QUESTIONS;
+    }
+
+    function renderExamTextQuestion(item, idx) {
+      const exam = ensureExamState();
+      const value = exam.textAnswers[item.id] || '';
+      const points = Number(exam.textScores[item.id] || 0);
+      const attempts = Number(exam.textAttempts[item.id] || 0);
+      const disabled = attempts >= 2 ? 'disabled' : '';
+      return `
+        <div class="quiz-question">
+          <h4>${idx + 1}. ${escapeHtml(item.title)}（0-2 分）</h4>
+          <p>${escapeHtml(item.prompt)}</p>
+          <textarea class="exam-answer-box" oninput="setExamTextAnswer('${item.id}', this.value)" placeholder="写具体场景、判断标准和下一步动作。">${escapeHtml(value)}</textarea>
+          <div class="exam-answer-actions">
+            <button class="btn sfx-hover" ${disabled} onclick="gradeExamText('${item.id}')">${attempts ? '修改后重评' : '提交本题评分'}</button>
+            <span class="question-status">当前得分：${points} / 2 · 已评分 ${attempts} / 2 次</span>
+          </div>
+          ${exam.textFeedback[item.id] ? `<div class="quiz-feedback">${escapeHtml(exam.textFeedback[item.id])}</div>` : ''}
+        </div>
+      `;
+    }
+
+    function renderExamQuizQuestion(item, idx) {
+      const exam = ensureExamState();
+      const key = item.id;
+      const selected = exam.quizAnswers[key];
+      const show = exam.quizLocked[key] || exam.submitted;
+      return `
+        <div class="quiz-question">
+          <h4>${idx + 1}. ${escapeHtml(item.text)}</h4>
+          <div class="option-list">
+            ${item.options.map((opt, oi) => {
+              const isCorrect = show && oi === item.answer;
+              const isWrong = show && selected === oi && oi !== item.answer;
+              return `<label class="quiz-option ${isCorrect ? 'correct' : ''} ${isWrong ? 'wrong' : ''}"><input type="radio" name="exam-q-${idx}" value="${oi}" ${selected === oi ? 'checked' : ''} onchange="setExamQuizAnswer('${key}', ${oi})"><span>${escapeHtml(opt)}</span></label>`;
+            }).join('')}
+          </div>
+          ${show ? `<div class="quiz-feedback">${selected === item.answer ? '首次作答正确：' : '首次作答未得分，正确答案解释：'}${escapeHtml(item.explain)} 之后修改只用于复盘，不重新计分。</div>` : ''}
+        </div>
+      `;
+    }
+
+    function setExamTextAnswer(id, value) {
+      ensureExamState().textAnswers[id] = value;
+      state.exam.submitted = false;
+      saveState();
+    }
+
+    function setExamQuizAnswer(key, value) {
+      const exam = ensureExamState();
+      exam.quizAnswers[key] = value;
+      if (!exam.quizLocked[key]) {
+        const question = getExamQuizQuestions().find(item => item.id === key);
+        exam.quizScore[key] = question && value === question.answer ? 1 : 0;
+        exam.quizLocked[key] = true;
+        playVoiceOnce('examChoice');
+      }
+      state.exam.submitted = false;
+      playSound('click');
+      saveState();
+      renderAll();
+    }
+
+    function submitExam() {
+      playSound('click');
+      const exam = ensureExamState();
+      const paper = buildExamPaper();
+      const textMissing = paper.text.some(item => !(exam.textAnswers[item.id] || '').trim());
+      const textUngraded = paper.text.some(item => exam.textScores[item.id] === undefined);
+      const quizMissing = paper.quiz.some(item => exam.quizAnswers[item.id] === undefined);
+      if (textMissing || textUngraded || quizMissing) {
+        toast('请先完成整张试卷，再提交考试。');
+        setMentor('guide', '考试还没答完。问答题需要先逐题评分，选择题需要完成首次作答。');
+        return;
+      }
+      exam.score = getExamDraftScore();
+      exam.total = getExamTotal();
+      exam.submitted = true;
+      setMentor(exam.score >= Math.ceil(exam.total * 0.9) ? 'happy' : 'retry', exam.score >= Math.ceil(exam.total * 0.9) ? '考试成绩达到 90% 建议线。可以查看错题，也可以重新组卷再挑战。' : '考试还没到 90% 建议线。先看错题解释，再重新组卷或回普通模式练习。');
+      toast('考试已提交：' + exam.score + ' / ' + exam.total + ' 分');
+      playVoiceOnce('examResult');
+      saveState();
+      renderAll();
+      showExamResultModal(exam.score, exam.total);
+    }
+
+    async function gradeExamText(id) {
+      playSound('click');
+      const exam = ensureExamState();
+      const item = getExamTextQuestions().find(q => q.id === id);
+      if (!item) return;
+      const text = (exam.textAnswers[id] || '').trim();
+      if (!text) {
+        toast('请先写下本题答案。');
+        return;
+      }
+      const attempts = Number(exam.textAttempts[id] || 0);
+      if (attempts >= 2) {
+        toast('本题已用完修改重评次数。');
+        return;
+      }
+      playVoiceOnce('examGrading');
+      if (!hasAIKey()) {
+        const localPoints = scoreExamText(text);
+        exam.textScores[id] = localPoints;
+        exam.textAttempts[id] = attempts + 1;
+        exam.textFeedback[id] = '无 Key 评分说明：已记录作答，按本地规则记 ' + localPoints + ' 分；这不代表答案质量已经由 AI 严格判断。';
+        setMentor('guide', '无 Key 模式已记录基础分。连接 Key 后可以获得更严格的答案质量评分。');
+        saveState();
+        renderAll();
+        return;
+      }
+      setMentor('coding', '我正在检查这道问答题。');
+      try {
+        const resultText = await callAI([
+          { role: 'system', content: examTextGraderPrompt() },
+          { role: 'user', content: `题目：${item.title}\n题干：${item.prompt}\n评分要点：${item.rubric}\n学生答案：\n${text}` }
+        ], { temperature: 0.2, max_tokens: 700 });
+        const data = parseJson(resultText);
+        const points = Math.max(0, Math.min(2, Number(data.points ?? data.score ?? 0)));
+        exam.textScores[id] = points;
+        exam.textAttempts[id] = attempts + 1;
+        exam.textFeedback[id] = 'AI 评分：' + points + ' / 2。' + (data.feedback || data.problem || '已完成评分。');
+        setMentor(points >= 2 ? 'happy' : 'guide', points >= 2 ? '这题回答质量不错，已经拿到满分。' : '这题已计分，还可以根据反馈补充后使用一次重评机会。');
+      } catch (err) {
+        exam.textScores[id] = 1;
+        exam.textAttempts[id] = attempts + 1;
+        exam.textFeedback[id] = 'AI 评分失败，已按有作答记录 1 分基础分处理：' + formatApiError(err);
+        setMentor('retry', 'AI 评分失败，先按基础分记录。你可以检查 Key 或网络。');
+      }
+      saveState();
+      renderAll();
+    }
+
+    function restartExam() {
+      playSound('open');
+      startExamSession();
+      saveState();
+      renderAll();
+      toast('已重新组卷，本次考试从 0 分开始。');
+    }
+
+    function renderQuiz(level) {
+      const st = state.levels[level.id];
+      const mode = getMode();
+      return level.quiz.map((question, qi) => {
+        const selected = st.quizAnswers[qi];
+        const checked = st.quizChecked;
+        const showAnswer = checked || mode.showAnswers;
+        return `
+          <div class="quiz-question">
+            <h4>${qi + 1}. ${escapeHtml(question.text)}</h4>
+            <div class="option-list">
+              ${question.options.map((opt, oi) => {
+                const isCorrect = showAnswer && oi === question.answer;
+                const isWrong = checked && selected === oi && oi !== question.answer;
+                return `
+                  <label class="quiz-option ${isCorrect ? 'correct' : ''} ${isWrong ? 'wrong' : ''}">
+                    <input type="radio" name="q-${level.id}-${qi}" value="${oi}" ${selected === oi ? 'checked' : ''} onchange="setQuizAnswer(${level.id}, ${qi}, ${oi})">
+                    <span>${escapeHtml(opt)}</span>
+                  </label>
+                `;
+              }).join('')}
+            </div>
+            ${showAnswer ? `<div class="quiz-feedback">${checked && selected !== question.answer ? '错题解释：' : '参考答案：'}${escapeHtml(question.explain)}</div>` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderQuizSummary(level) {
+      const st = state.levels[level.id];
+      if (!st.quizChecked) return '';
+      const correct = countCorrect(level);
+      const got = correct;
+      const total = level.quiz.length;
+      const pass = got === total;
+      return `<div class="quiz-summary ${pass ? 'pass' : 'fail'}">${pass ? '题目全对。本关题目得分已记录。' : '当前题目得分 ' + got + ' / ' + total + '。错题已经标出并显示解释，可以修改后再次提交。'}</div>`;
+    }
+
+    function showResultModal(config) {
+      const modal = document.getElementById('resultModal');
+      if (!modal) return;
+      document.getElementById('resultModalTitle').textContent = config.title;
+      document.getElementById('resultModalMessage').textContent = config.message;
+      document.getElementById('resultModalScore').textContent = config.scoreText;
+      document.getElementById('resultModalScoreLabel').textContent = config.scoreLabel || '本次得分';
+      document.getElementById('resultModalRate').textContent = config.rateText;
+      document.getElementById('resultModalRateLabel').textContent = config.rateLabel || '正确率';
+      modal.classList.add('show');
+    }
+
+    function closeResultModal() {
+      document.getElementById('resultModal')?.classList.remove('show');
+    }
+
+    function showQuizResultModal(level, correct, pass) {
+      const total = level.quiz.length;
+      const rate = total ? Math.round(correct / total * 100) : 0;
+      const learning = currentMode === 'learn';
+      showResultModal({
+        title: learning ? '练习完成' : (pass ? '测验通过' : '测验结果'),
+        message: learning
+          ? '学习模式不计入总分，题目解释已展开，可以继续复盘。'
+          : (pass ? `第 ${level.id} 关选择题得分已记录，题目解释会保留在页面里。` : '题目解释已展开，先看错题原因，再修改答案重试。'),
+        scoreText: `${correct} / ${total}`,
+        scoreLabel: learning ? '练习答对' : '选择题得分',
+        rateText: `${rate}%`
+      });
+    }
+
+    function showExamResultModal(score, total) {
+      const rate = total ? Math.round(score / total * 100) : 0;
+      showResultModal({
+        title: '考试成绩',
+        message: rate >= 90 ? '已经达到 90% 建议线，可以查看错题或继续挑战。' : '还没到 90% 建议线，先看错题解释，再重新组卷或回普通模式练习。',
+        scoreText: `${score} / ${total}`,
+        scoreLabel: '考试得分',
+        rateText: `${rate}%`
+      });
+    }
+
+    function renderUnlockPanel(level) {
+      const complete = isLevelComplete(level.id);
+      const next = getLevel(level.id + 1);
+      const l1Unlocked = levels.slice(0, 4).every(l => isLevelComplete(l.id));
+      if (level.id === 4 && l1Unlocked) {
+        return `<details class="section-block" open><summary>L1 实战已解锁</summary><div class="detail-body"><p>你已经完成基础协作训练，可以开始做第一个网页 Demo。继续后面的关卡会训练验收、Bug 反馈和迭代。</p><div class="section-actions"><button class="btn sfx-hover" onclick="selectLevel(5)">继续进阶训练</button></div></div></details>`;
+      }
+      if (complete && next) {
+        return `<details class="section-block" open><summary>下一关已解锁</summary><div class="detail-body"><p>本关完成，进入下一关继续训练。</p><div class="section-actions"><button class="btn sfx-hover" onclick="selectLevel(${next.id})">进入第 ${next.id} 关</button></div></div></details>`;
+      }
+      if (complete && !next) {
+        return `<details class="section-block" open><summary>主线完成</summary><div class="detail-body"><p>你已经完成 V3 首版全部关卡。现在可以复制最终 Demo 提示词，交给 Trae / Codex / Claude Code / Cursor 等工具开始真正实现。</p></div></details>`;
+      }
+      return '';
+    }
+
+    function getMentorLine(level) {
+      const st = state.levels[level.id];
+      if (!getMode().assignmentRequired) return '学习模式已开放自由学习。你可以看答案、跳关，也可以提交作业让我点评。';
+      if (!st.read) return '先读核心知识，再标记已读。你不需要背代码，先理解协作方法。';
+      if (!st.assignmentPassed) return '现在写文本作业。有回答先拿 1 分，写得具体可以拿 2 分。';
+      if (!st.quizPassed) return '接下来完成选择题。第一次提交记录分数，答错会显示解释，可以改完复盘。';
+      return '本关练习已记录分数。你可以继续冲满分，或者去考试模式挑战 90 分。';
+    }
+
+    function getLevelSideText(level) {
+      const map = {
+        1: '先理解人和 AI 的分工。',
+        2: '工具会变，协作流程可以迁移。',
+        3: '把空泛想法改成可执行指令。',
+        4: '把大需求拆成小步骤。',
+        5: '学会判断页面是否真的达标。',
+        6: '把问题描述到 AI 能定位。',
+        7: '用多轮修改把草稿变作品。',
+        8: '整理出最终 Demo 需求。'
+      };
+      return map[level.id] || '';
+    }
+
+    function setMentor(stateName, line) {
+      document.getElementById('mentorImg').src = mentorImages[stateName] || mentorImages.idle;
+      document.getElementById('mentorStateText').textContent = stateName;
+      document.getElementById('mentorBubble').textContent = line;
+    }
+
+    function getTips(level) {
+      const mode = getMode();
+      return [
+        ['当前目标', level.core],
+        ['学习模式', mode.label + '模式：' + mode.desc],
+        ['计分规则', mode.exam ? '考试模式独立组卷，切出会清空本次分数。' : (mode.showAnswers ? '简单模式不计分，适合预习和查答案。' : '普通模式记录总分，文本题 1-2 分，客观题每题 1 分。')],
+        ['模型提示', AI_CONFIG.model === 'glm-5.1' ? '你正在使用 glm-5.1，效果更强，但请确认账号余额。' : '默认 glm-4.7-flash 适合低成本练习。'],
+        ['闯关技巧', '先写能检查的目标，再让 AI 实现。不要只说“高级”“好看”。']
+      ];
+    }
+
+    function getFaqItems() {
+      return [
+        ['浏览器里能直接体验吗？', '可以。这个页面是单文件网页，讲解、做题、计分、TTS 播放都能在浏览器里体验。有 Key 时会尝试直连智谱接口；如果浏览器或网络策略拦截，请看“跨域处理”。'],
+        ['没有 Key 怎么计分？', '简单模式不计分；普通和考试模式可以记录基础分。问答题无 Key 时“有输入”记基础分，但这不代表 AI 已经判断答案质量。'],
+        ['普通模式和考试模式有什么区别？', '普通模式是练习，可以看答案、反复复盘；考试模式重新组卷，切出前会提醒清空本次考试记录。页面只记录分数，不强制判断及格。'],
+        ['问答题为什么只能重评一次？', '这是为了模拟正式考试里的修改机会：第一次提交看真实理解，第二次允许你根据反馈补充，但不能无限刷分。'],
+        ['选择题改答案为什么不重新计分？', '选择题记录第一次判断。看解释后改对很适合学习复盘，但考试分数仍保留首次作答结果。'],
+        ['glm-4.7-flash 和 glm-5.1 怎么选？', '默认 glm-4.7-flash 适合低成本练习；glm-5.1 更强，适合更严格的问答评分，但建议先确认智谱账号余额。'],
+        ['Key 会保存在哪里？', '如果勾选“记住我的 Key”，只保存在本机浏览器 localStorage；不勾选则保存在当前会话。页面不会主动把 Key 发给除智谱接口以外的服务。'],
+        ['什么是跨域？', '浏览器为了安全，可能阻止本地 HTML 直接请求某些 API。表现通常是连接失败、Failed to fetch，和你的答案无关。'],
+        ['跨域怎么处理？', '把整个文件夹交给 Trae / Codex / Claude Code / Cursor，让 AI 编辑器加一个本地代理服务：前端请求本地代理，本地代理再请求智谱接口。'],
+        ['我应该怎么把这个教程继续改成自己的课？', '先改题库和示例，再改 TTS 文案，最后换美术、音乐和音效。不要先堆装饰，学习目标和评分规则要先稳定。']
+      ];
+    }
+
+    function updateTips() {
+      const ticker = document.getElementById('tipsTicker');
+      if (ticker) ticker.classList.toggle('hidden-tip', tipsHidden);
+      const track = document.getElementById('tipsTrack');
+      if (!track || !connected) return;
+      const level = getLevel(currentLevelId);
+      const tips = getTips(level);
+      track.innerHTML = tips.map(item => `<div class="tip-item"><strong>${escapeHtml(item[0])}</strong><span>${escapeHtml(item[1])}</span></div>`).join('');
+      tipIndex = Math.min(tipIndex, tips.length - 1);
+      track.style.transform = 'translateY(' + (-92 * tipIndex) + 'px)';
+    }
+
+    function startTipsTicker() {
+      stopTipsTicker();
+      tipTimer = setInterval(() => {
+        const track = document.getElementById('tipsTrack');
+        if (!track) return;
+        const count = track.children.length || 1;
+        tipIndex = (tipIndex + 1) % count;
+        track.style.transform = 'translateY(' + (-92 * tipIndex) + 'px)';
+      }, 5000);
+    }
+
+    function stopTipsTicker() {
+      clearInterval(tipTimer);
+      tipTimer = null;
+    }
+
+    function closeTipBubble() {
+      playSound('close');
+      tipsHidden = true;
+      updateTips();
+    }
+
+    function showFaq() {
+      playSound('inputOpen');
+      const list = document.getElementById('faqList');
+      const items = getFaqItems();
+      list.innerHTML = items.map(item => `<div class="faq-item"><strong>${escapeHtml(item[0])}</strong><p>${escapeHtml(item[1])}</p></div>`).join('');
+      document.getElementById('faqOverlay').classList.add('show');
+    }
+
+    function hideFaq() {
+      playSound('close');
+      document.getElementById('faqOverlay').classList.remove('show');
+    }
+
+    function selectLevel(id) {
+      playSound('click');
+      if (getMode().exam) {
+        toast('考试模式使用独立试卷。切回普通模式后可以查看关卡。');
+        return;
+      }
+      if (!isUnlocked(id)) {
+        toast('这一关还没解锁，先完成前一关的三颗星。');
+        return;
+      }
+      currentLevelId = id;
+      playSound('open');
+      renderAll();
+      playLevelVoice(id);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function markRead(id) {
+      playSound('click');
+      const st = state.levels[id];
+      if (!st.read) {
+        st.read = true;
+        toast('阅读星已点亮');
+      }
+      renderAll();
+    }
+
+    function saveAssignmentDraft(id) {
+      playSound('click');
+      const text = document.getElementById('assignmentText').value.trim();
+      assignments[id] = { ...(assignments[id] || {}), text };
+      saveState();
+      toast('作业草稿已保存');
+    }
+
+    function focusAssignmentText() {
+      playSound('inputOpen');
+    }
+
+    function localAssignmentFeedback(level, text) {
+      const example = getAssignmentExample(level);
+      return [
+        '无 Key 体验：已保存你的作业。简单模式不计分，但你可以对照参考答案自查。',
+        '',
+        '自查重点：' + level.requirements,
+        '参考写法：' + example,
+        '',
+        '等你连接 Key 后，可以切到普通或考试模式，让星星学长按评分标准认真点评。'
+      ].join('\n');
+    }
+
+    async function submitAssignment(id) {
+      playSound('click');
+      const level = getLevel(id);
+      const text = document.getElementById('assignmentText').value.trim();
+      if (!text) {
+        toast('请先写作业内容。');
+        return;
+      }
+      const btn = document.getElementById('submitAssignmentBtn');
+      btn.disabled = true;
+      btn.textContent = hasAIKey() ? '星星学长点评中...' : '保存中...';
+      setMentor(hasAIKey() ? 'coding' : 'guide', hasAIKey() ? '我正在阅读你的作业，会按本关评分标准判断是否过关。' : '无 Key 体验会先保存作业，并给你本地自查建议。');
+      assignments[id] = { ...(assignments[id] || {}), text };
+      saveState();
+      if (!hasAIKey()) {
+        assignments[id] = {
+          text,
+          pass: true,
+          score: null,
+          points: currentMode === 'learn' ? 0 : 1,
+          feedback: localAssignmentFeedback(level, text),
+          raw: 'offline'
+        };
+        state.levels[id].assignmentPoints = currentMode === 'learn' ? 0 : 1;
+        if (!state.levels[id].assignmentPassed) {
+          state.levels[id].assignmentPassed = true;
+        }
+        saveState();
+        setMentor('guide', '作业已保存。你可以对照参考写法补充细节，连接 Key 后再做严格点评。');
+        appendChat('mentor', '文本作业已保存。简单模式不计分；如果切到普通模式重新提交，有回答会先拿 1 分，回答充分可以拿 2 分。');
+        toast('无 Key 模式已保存作业');
+        if (id === 4) playVoiceOnce('mid');
+        if (level.final) playVoiceOnce('graduate');
+        state.levels[id].assignmentSubmitted = true;
+        checkAndUnlockNext(id);
+        btn.disabled = false;
+        btn.textContent = '提交给星星学长点评';
+        renderAll();
+        return;
+      }
+      try {
+        const resultText = await callAI([
+          { role: 'system', content: assignmentSystemPrompt() },
+          { role: 'user', content: buildAssignmentPrompt(level, text) }
+        ], { temperature: 0.2, max_tokens: 1000 });
+        const data = parseJson(resultText);
+        const pass = isAssignmentPassed(level, Number(data.score || 0), Boolean(data.pass));
+        const points = getMode().showAnswers ? 0 : (pass ? 2 : 1);
+        assignments[id] = {
+          text,
+          pass,
+          score: Number(data.score || 0),
+          points,
+          feedback: formatAssignmentFeedback(data, pass),
+          raw: resultText
+        };
+        state.levels[id].assignmentPoints = points;
+        if (pass && !state.levels[id].assignmentPassed) {
+          state.levels[id].assignmentPassed = true;
+          awardBadge(level.badge);
+          setMentor('happy', data.coach_line || '这份作业已经达标，继续挑战测验。');
+          appendChat('mentor', '文本作业评分：2 / 2。\n' + formatAssignmentFeedback(data, pass));
+          toast('作业通过，作业星已点亮');
+          if (id === 4) playVoiceOnce('mid');
+          if (level.final) playVoiceOnce('graduate');
+        } else if (!pass) {
+          state.levels[id].assignmentPassed = true;
+          setMentor('guide', data.coach_line || '已记录 1 分基础分。把反馈里的缺口补上再提交，可以冲 2 分。');
+          appendChat('mentor', '文本作业评分：1 / 2。\n' + formatAssignmentFeedback(data, pass));
+          toast('已记录文本作业基础分，可修改后再提交');
+          playVoiceOnce('assignmentRetry');
+        }
+      } catch (err) {
+        assignments[id] = { text, pass: false, feedback: '点评失败：' + formatApiError(err) };
+        setMentor('retry', '这次点评没有成功。检查 Key 或网络后再试一次。');
+      } finally {
+        state.levels[id].assignmentSubmitted = true;
+        checkAndUnlockNext(id);
+        btn.disabled = false;
+        btn.textContent = '提交给星星学长点评';
+        renderAll();
+      }
+    }
+
+    function assignmentSystemPrompt() {
+      return `你是“AI编程挑战入门”的作业评审员，角色名是星星学长。
+你的任务不是夸用户，而是判断用户是否真的理解本关核心能力，能否进入下一关。
+必须只输出 JSON，不要输出 Markdown，不要输出多余解释。
+评分原则：
+1. 不要求专业术语，但必须用自己的话解释，不接受照抄题干或只写口号。
+2. 必须检查用户是否完成“理解证明目标”。如果没有举例、没有判断标准、没有具体操作，必须判定不通过。
+3. 不鼓励空泛词，例如“高级”“好看”“优化一下”，除非用户解释了具体含义。
+4. 对初学者保持鼓励，但不能放水。反馈要指出“缺什么、怎么补、补完会更像什么”。
+5. 如果作业缺少关键字段，必须判定不通过；如果只是格式稍乱但理解充分，可以通过。
+输出格式：
+{"pass":true,"score":0,"level":"优秀/通过/需修改","feedback":"一句简短反馈","problem":"最大问题，没有则为空字符串","missing":["缺少的关键点"],"improved_version":"给出一个更好的改写版本","coach_line":"星星学长对用户说的一句鼓励话"}`;
+    }
+
+    function examTextGraderPrompt() {
+      return `你是“AI编程挑战入门”的考试问答题评分员，角色名星星学长。
+你只评估学生是否真正理解 AI 编程协作，不要求专业术语。
+必须只输出 JSON，不要 Markdown。
+评分为 0、1、2 三档：
+0 分：空泛、跑题、照抄题干，无法体现理解。
+1 分：有回答并部分正确，但缺少具体场景、例子、验收标准或操作步骤。
+2 分：回答具体，能说明原因和做法，并包含可检查标准或真实例子。
+输出格式：
+{"points":0,"feedback":"简短说明为什么是这个分数","missing":["缺少的关键点"],"coach_line":"一句下一步建议"}`;
+    }
+
+
+    function buildAssignmentPrompt(level, text) {
+      return `关卡名称：${level.title}
+作业题目：${level.assignmentTitle}
+理解证明目标：${(LESSONS[level.id] || {}).proof || ''}
+作业要求：${level.requirements}
+评分标准：${level.rubric}
+当前模式：${getMode().label}
+通过标准：${getMode().assignmentRequired ? '总分 >= ' + getAssignmentThreshold(level) : '学习模式不强制作业卡关，但仍请认真点评'}
+用户提交：
+${text}
+请严格输出 JSON。`;
+    }
+
+    function parseJson(text) {
+      try { return JSON.parse(text); } catch (e) {}
+      const match = text.match(/\{[\s\S]*\}/);
+      if (match) {
+        try { return JSON.parse(match[0]); } catch (e) {}
+      }
+      return { pass: false, score: 0, feedback: '模型返回格式不标准。', problem: text.slice(0, 180), missing: [], improved_version: '', coach_line: '返回格式有点乱，可以再试一次。' };
+    }
+
+    function formatAssignmentFeedback(data, pass) {
+      const lines = [];
+      lines.push((pass ? '通过' : '需修改') + ' · ' + (data.score ?? 0) + ' 分');
+      if (data.feedback) lines.push(data.feedback);
+      if (data.problem) lines.push('主要问题：' + data.problem);
+      if (Array.isArray(data.missing) && data.missing.length) lines.push('缺少：' + data.missing.join('、'));
+      if (data.improved_version) lines.push('参考改写：\n' + data.improved_version);
+      return lines.join('\n');
+    }
+
+    function setQuizAnswer(id, qi, oi) {
+      state.levels[id].quizAnswers[qi] = oi;
+      state.levels[id].quizChecked = false;
+      saveState();
+      playSound('click');
+    }
+
+    function submitQuiz(id) {
+      playSound('click');
+      const level = getLevel(id);
+      const st = state.levels[id];
+      const needsQuiz = getQuizRequiredCount(level) > 0;
+      if (needsQuiz && Object.keys(st.quizAnswers).length < level.quiz.length) {
+        toast('请先回答完所有题目。');
+        return;
+      }
+      st.quizChecked = true;
+      const correct = countCorrect(level);
+      const pass = isQuizPassed(level, correct);
+      if (pass && !st.quizPassed) {
+        st.quizPassed = true;
+        setMentor('happy', '测验通过。本关的测验星已经点亮。');
+        toast('测验通过，题目分数已记录');
+        if (isLevelComplete(id)) playSound('open');
+        if (id === 4) playVoiceOnce('mid');
+        if (level.final) playVoiceOnce('graduate');
+      } else if (pass) {
+        setMentor('happy', '题目已经全对，分数已更新。');
+      } else if (!pass) {
+        setMentor('retry', '有几题还没吃透。看解释，改答案，再试一次。');
+        toast(getQuizPassText(level) + '，错题已标出。');
+        playVoiceOnce('quizRetry');
+      }
+      renderAll();
+      showQuizResultModal(level, correct, pass);
+    }
+
+    function resetQuiz(id) {
+      playSound('click');
+      state.levels[id].quizAnswers = {};
+      state.levels[id].quizChecked = false;
+      state.levels[id].quizPassed = false;
+      saveState();
+      renderAll();
+      toast('本关测验已重置');
+    }
+
+    function countCorrect(level) {
+      const answers = state.levels[level.id].quizAnswers;
+      return level.quiz.reduce((sum, item, idx) => sum + (answers[idx] === item.answer ? 1 : 0), 0);
+    }
+
+    function getAssignmentPoints(level) {
+      if (currentMode === 'learn') return 0;
+      const st = state.levels[level.id];
+      const assignment = assignments[level.id] || {};
+      return Math.max(0, Math.min(2, Number(assignment.points ?? st.assignmentPoints ?? 0)));
+    }
+
+    function getLevelScore(level) {
+      const assignment = currentMode === 'learn' ? 0 : getAssignmentPoints(level);
+      const quiz = currentMode === 'learn' ? 0 : countCorrect(level);
+      return { assignment, quiz, score: assignment + quiz, total: 2 + level.quiz.length };
+    }
+
+    function getQuestionById(id) {
+      for (const level of levels) {
+        const idx = level.quiz.findIndex((_, i) => 'l' + level.id + '-q' + i === id);
+        if (idx >= 0) return level.quiz[idx];
+      }
+      return null;
+    }
+
+    function getCurrentScore() {
+      if (currentMode === 'learn') return { score: 0, total: 0, percent: 0 };
+      if (getMode().exam) {
+        const exam = ensureExamState();
+        const total = getExamTotal();
+        const score = exam.submitted ? exam.score : getExamDraftScore();
+        return { score, total, percent: total ? Math.round(score / total * 100) : 0 };
+      }
+      const total = levels.reduce((sum, level) => sum + getLevelScore(level).total, 0);
+      const score = levels.reduce((sum, level) => sum + getLevelScore(level).score, 0);
+      return { score, total, percent: total ? Math.round(score / total * 100) : 0 };
+    }
+
+    function getScoreLabel() {
+      if (currentMode === 'learn') return '不计分';
+      const score = getCurrentScore();
+      return score.score + ' / ' + score.total + '（' + score.percent + '%）';
+    }
+
+    function scoreExamText(value) {
+      const text = String(value || '').trim();
+      if (!text) return 0;
+      const hasConcrete = /例子|例如|页面|用户|验收|检查|期望|实际|模块|按钮|移动端|适配|步骤|反馈|AI|ai/.test(text);
+      return text.length >= 60 && hasConcrete ? 2 : 1;
+    }
+
+    function getExamTotal() {
+      const paper = buildExamPaper();
+      return paper.text.length * 2 + paper.quiz.length;
+    }
+
+    function getExamDraftScore() {
+      const exam = ensureExamState();
+      const paper = buildExamPaper();
+      const textScore = paper.text.reduce((sum, item) => sum + Number(exam.textScores[item.id] || 0), 0);
+      const quizScore = paper.quiz.reduce((sum, item) => {
+        return sum + Number(exam.quizScore[item.id] || 0);
+      }, 0);
+      return textScore + quizScore;
+    }
+
+    function getAssignmentThreshold(level) {
+      const mode = getMode();
+      return level.final ? mode.finalAssignmentScore : mode.assignmentScore;
+    }
+
+    function isAssignmentPassed(level, score, modelPass) {
+      const mode = getMode();
+      if (!mode.assignmentRequired) return true;
+      if (mode.exam) return modelPass && score >= 70;
+      return Boolean(score > 0 || modelPass);
+    }
+
+    function getQuizRequiredCount(level) {
+      return getMode().showAnswers ? 0 : level.quiz.length;
+    }
+
+    function isQuizPassed(level, correct) {
+      return correct >= getQuizRequiredCount(level);
+    }
+
+    function getQuizPassText(level) {
+      const need = getQuizRequiredCount(level);
+      if (need <= 0) return '简单模式可自由查看答案，不强制测验';
+      return '选择题每题 1 分；首次提交记录分数，答错会显示答案和解释';
+    }
+
+    function getQuizInstruction(level) {
+      const mode = getMode();
+      const proof = (LESSONS[level.id] || {}).proof || level.requirements;
+      if (mode.showAnswers) return '简单模式已显示参考答案和解释。目标不是刷题，而是确认你能做到：' + proof;
+      return getQuizPassText(level) + '。这些题用来确认你能做到：' + proof + '。答错会显示解释，可以修改后重新提交。';
+    }
+
+    function getAssignmentExample(level) {
+      const examples = {
+        1: '我负责说明目标、判断页面是否符合预期、告诉 AI 哪里要改；AI 负责生成网页结构、解释代码、根据反馈修改。例子：我要做给面试官看的作品集页，AI 先生成首页/项目/联系模块，我检查是否有 3 个项目卡片、联系按钮能不能点、手机端是否重叠。',
+        2: '打开项目：把整个文件夹放进 AI 编辑器；描述任务：说清要改哪个页面和目标；预览结果：用本地浏览器打开检查；反馈修改：指出实际和期望。不是记按钮，因为 Trae、Codex、Claude Code 的按钮会变，但这四步不会变。',
+        3: '原句问题：没有页面类型、用户、内容、风格和验收标准。改写：请创建一个 index.html 个人作品集网页，给招聘方看，包含首屏介绍、技能、3 个项目、联系方式。蓝白简洁卡片风格，按钮有悬停效果。验收：手机端不重叠，联系按钮可点击。',
+        4: '1. AI 做基础 HTML 结构，我检查首页/项目/联系是否都出现；2. AI 填入真实项目内容，我检查文字是否完整；3. AI 优化蓝白卡片风格，我检查间距和层级；4. AI 添加项目筛选，我检查点击分类后是否过滤；5. AI 做手机适配，我检查 375px 下不重叠。',
+        5: '1. 首屏必须显示姓名和职业方向；2. 至少 3 个项目卡片；3. 联系按钮点击后能打开邮箱或弹窗；4. 桌面端项目卡片排列整齐；5. 375px 手机端单列显示且文字不重叠；6. 所有图片或占位图不会拉伸变形。',
+        6: '复现步骤：我在页面底部输入留言后点击“提交留言”。实际结果：页面没有新增内容，输入框也没有清空。期望结果：留言出现在列表顶部，并清空输入框。问题位置：底部提交留言按钮。请优先检查按钮点击事件、表单默认提交和留言渲染逻辑。',
+        7: '第一轮补内容：补齐技能、项目和联系信息，验收是否每块都有真实内容。第二轮调视觉：统一卡片间距、圆角、阴影，验收页面层级是否清楚。第三轮加交互：项目筛选和返回顶部，验收按钮点击是否有效。',
+        8: '项目名称：学习打卡网页。目标用户：AI 编程初学者。模块：首页、每日任务、作业提交、进度徽章。风格：清爽科技感，蓝绿点缀。交互：勾选任务、提交作业、显示徽章。验收：手机端不重叠，按钮可点击，至少 5 个任务可勾选。第一轮只做静态页面和勾选功能，后续再加统计和导出。'
+      };
+      return examples[level.id] || '先写清楚目标、内容、风格和验收标准。';
+    }
+
+    function askLevelSummary() {
+      playSound('click');
+      const level = getLevel(currentLevelId);
+      document.getElementById('mentorInput').value = '请用 120 字以内帮我总结这一关：' + level.title;
+      askMentor();
+    }
+
+    function askHint() {
+      playSound('click');
+      const level = getLevel(currentLevelId);
+      const draft = document.getElementById('assignmentText')?.value.trim() || '';
+      document.getElementById('mentorInput').value = `当前关卡：${level.title}\n当前任务：${level.assignmentTitle}\n我的草稿：${draft || '还没写'}\n请给我一个小提示，不要直接替我完成。`;
+      askMentor();
+    }
+
+    async function askMentor() {
+      const input = document.getElementById('mentorInput');
+      const text = input.value.trim();
+      if (!text) {
+        toast('先写下你想问星星学长的问题。');
+        return;
+      }
+      appendChat('user', text);
+      input.value = '';
+      if (!hasAIKey()) {
+        const level = getLevel(currentLevelId);
+        const reply = buildOfflineMentorReply(level, text);
+        appendChat('mentor', reply);
+        setMentor('guide', reply.slice(0, 120));
+        toast('无 Key 模式使用本地提示。连接 Key 后可开启实时问答。');
+        return;
+      }
+      setMentor('coding', '我在思考你的问题。');
+      try {
+        const level = getLevel(currentLevelId);
+        const reply = await callAI([
+          { role: 'system', content: mentorSystemPrompt(level) },
+          { role: 'user', content: `当前关卡：${level.title}\n用户进度：${getProgressSummary()}\n用户问题：${text}` }
+        ], { temperature: 0.7, max_tokens: 500 });
+        appendChat('mentor', reply);
+        setMentor('guide', reply.slice(0, 120));
+      } catch (err) {
+        appendChat('mentor', '连接失败：' + formatApiError(err));
+        setMentor('retry', '这次没有连上模型。检查网络或 Key 后再试。');
+      }
+    }
+
+    function mentorSystemPrompt(level) {
+      const proof = (LESSONS[level.id] || {}).proof || level.requirements;
+      return `你是“AI编程挑战入门”的伴学导师，名字叫星星学长。
+角色气质：像认真带练的学长，温和、清楚、有一点游戏闯关感，但不要幼稚。
+当前关卡：${level.title}
+本关核心：${level.core}
+本关理解证明目标：${proof}
+
+回答规则：
+1. 必须使用简体中文，默认不超过 180 字。
+2. 你不是代写机器。不要直接替用户完成整份作业；先指出思路，再给一个很小的示例片段。
+3. 如果用户目标不清楚，先追问 1-2 个关键问题，例如“给谁用”“怎么验收”“AI 先做哪一步”。
+4. 如果用户问作业，必须围绕本关理解证明目标纠偏，提醒他缺少的字段。
+5. 如果用户想要答案，给框架和自查清单，不给完整可复制答案，除非用户明确要求简单模式参考。
+6. 不要索要、复述、保存 API Key。
+7. 不要泛泛鼓励，每次都给一个下一步动作。`;
+    }
+
+    function buildOfflineMentorReply(level, text) {
+      const lower = text.toLowerCase();
+      if (lower.includes('总结') || text.includes('总结')) {
+        return `第 ${level.id} 关重点：${level.core}\n本关要证明：${(LESSONS[level.id] || {}).proof || level.requirements}\n先抓住：${level.knowledge.slice(0, 2).join('；')}`;
+      }
+      if (lower.includes('提示') || text.includes('提示') || text.includes('草稿')) {
+        return `小提示：${level.hint}\n别急着写完整答案，先对照“理解证明目标”：${(LESSONS[level.id] || {}).proof || level.requirements}`;
+      }
+      return `无 Key 体验下我先给你本地建议：围绕“目标、例子、验收方式”表达。本关重点是：${level.core}`;
+    }
+
+    function appendChat(type, text) {
+      const log = document.getElementById('chatLog');
+      const div = document.createElement('div');
+      div.className = 'chat-msg ' + (type === 'user' ? 'user' : '');
+      div.textContent = text;
+      log.appendChild(div);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    async function generateReport() {
+      playSound('click');
+      if (!levels.every(l => isLevelComplete(l.id))) {
+        toast('完成全部关卡后再生成结业报告。');
+        return;
+      }
+      if (!hasAIKey()) {
+        const finalProject = assignments[8]?.text || '还没有填写最终 Demo 需求。';
+        state.report = [
+          '无 Key 版结业报告',
+          '',
+          '学习成果：你已经跑通 AI 编程的基础闭环，理解了目标表达、任务拆解、验收、Bug 反馈和迭代。',
+          '最强能力：你能把一个模糊想法整理成更可执行的网页 Demo 需求。',
+          '还可以提升：连接 Key 后建议重新提交 3、5、6、8 关作业，让星星学长做严格点评。',
+          '最终 Demo 提示词：',
+          finalProject
+        ].join('\n');
+        saveState();
+        setMentor('unlock', '无 Key 版结业报告已生成。连接 Key 后可以生成更个性化的版本。');
+        renderAll();
+        return;
+      }
+      setMentor('coding', '我正在整理你的结业报告。');
+      try {
+        const finalProject = assignments[8]?.text || '';
+        const allAssignments = levels.map(l => `第${l.id}关 ${l.title}\n${assignments[l.id]?.text || ''}`).join('\n\n');
+        const report = await callAI([
+          { role: 'system', content: '你是 AI 编程伴学导师 星星学长。请根据用户作业生成简体中文结业报告，分为：学习成果、最强能力、还可以提升的地方、下一步建议。不要超过 500 字。' },
+          { role: 'user', content: `完成徽章：${state.badges.join(', ')}\n主要作业：\n${allAssignments}\n最终项目说明：\n${finalProject}` }
+        ], { temperature: 0.6, max_tokens: 900 });
+        state.report = report;
+        saveState();
+        setMentor('unlock', '结业报告已生成。现在可以把最终 Demo 提示词交给 AI 编程工具。');
+        renderAll();
+      } catch (err) {
+        toast(formatApiError(err));
+        setMentor('retry', '结业报告生成失败，可以稍后再试。');
+      }
+    }
+
+    function copyFinalPrompt() {
+      playSound('click');
+      const text = assignments[8]?.text || '';
+      if (!text) {
+        toast('还没有最终 Demo 作业可复制。');
+        return;
+      }
+      navigator.clipboard.writeText(text).then(() => toast('最终 Demo 提示词已复制'));
+    }
+
+    function buildEditorProxyPrompt() {
+      return `请帮我把这个本地 HTML 学习项目加一个本地代理服务，解决浏览器直接请求智谱 API 时可能遇到的跨域问题。
+
+项目目标：
+这是一个本地单文件教学页，主文件是“AI编程入门教程V3.html”。页面里用户会输入自己的智谱 API Key，调用智谱 chat completions 接口完成作业点评和导师问答。
+
+请你完成：
+1. 不破坏现有页面 UI 和闯关逻辑。
+2. 新增一个本地代理服务，例如 Node.js Express 或 Python FastAPI，端口可用 8788。
+3. 前端不要直接请求 https://open.bigmodel.cn/api/paas/v4/chat/completions，而是请求本地代理接口。
+4. 本地代理把请求转发到智谱接口，并保留 model、messages、temperature、max_tokens、stream=false 等字段。
+5. API Key 仍由用户在页面输入，本地代理只负责转发 Authorization，不要写死 Key，不要把 Key 打印到日志。
+6. 给我一个启动命令和测试步骤。
+7. 如果我选择 glm-5.1，请提醒我确认智谱账号余额；默认保持 glm-4.7-flash。`;
+    }
+
+    function copyEditorProxyPrompt() {
+      playSound('click');
+      navigator.clipboard.writeText(buildEditorProxyPrompt()).then(() => toast('跨域处理提示词已复制'));
+    }
+
+    function getProgressSummary() {
+      return levels.map(l => {
+        const st = state.levels[l.id];
+        return `第${l.id}关：阅读${st.read ? '完成' : '未完成'}，作业${st.assignmentPassed ? '通过' : '未通过'}，测验${st.quizPassed ? '通过' : '未通过'}`;
+      }).join('；');
+    }
+
+    function awardBadge(id) {
+      if (!state.badges.includes(id)) {
+        state.badges.push(id);
+        playSound('open');
+        const badge = badges.find(b => b.id === id);
+        toast('获得徽章：' + (badge ? badge.name : id));
+      }
+    }
+
+    function isUnlocked(id) {
+      if (!connected) return false;
+      if (getMode().exam) return false;
+      if (getMode().unlock === 'free') return true;
+      if (id === 1) return true;
+      if (getMode().unlock === 'sequence') return true;
+      return isLevelComplete(id - 1);
+    }
+
+    function isLevelComplete(id) {
+      const st = state.levels[id];
+      if (!st) return false;
+      if (!getMode().assignmentRequired) return Boolean(st.read || st.assignmentPassed || st.quizPassed);
+      return Boolean(st.read && (getLevelScore(getLevel(id)).score > 0));
+    }
+
+    function getMaxUnlockedLevel() {
+      let max = 1;
+      for (const level of levels) {
+        if (isUnlocked(level.id)) max = level.id;
+      }
+      return max;
+    }
+
+    function getCompletedCount() {
+      return levels.filter(level => isLevelComplete(level.id)).length;
+    }
+
+    function getStars(id) {
+      const st = state.levels[id];
+      const count = currentMode === 'learn'
+        ? ((st.read ? 1 : 0) + (st.assignmentPassed ? 1 : 0) + (st.quizPassed ? 1 : 0))
+        : Math.min(3, Math.ceil((getLevelScore(getLevel(id)).score / getLevelScore(getLevel(id)).total) * 3));
+      return '★'.repeat(count) + '☆'.repeat(3 - count);
+    }
+
+    function getLevel(id) {
+      return levels.find(level => level.id === id);
+    }
+
+    function resetProgress() {
+      if (!confirm('确定要重置所有学习进度吗？Key 不会被删除。')) return;
+      playSound('click');
+      state = defaultState();
+      if (connected) {
+        state.badges = ['launcher'];
+      }
+      assignments = {};
+      currentLevelId = 1;
+      saveState();
+      renderAll();
+      toast('学习进度已重置');
+    }
+
+    function playSound(name) {
+      if (globalMuted || !canUseAudio()) return;
+      const audio = sounds[name];
+      if (!audio) return;
+      try {
+        audio.currentTime = 0;
+        audio.play().catch(() => {});
+      } catch (e) {}
+    }
+
+    function getMusicKey(preferredKey) {
+      if (preferredKey && MUSIC[preferredKey]) return preferredKey;
+      if (document.getElementById('app')?.classList.contains('hidden')) return 'launch';
+      if (getMode().exam) return 'exam';
+      return currentMode === 'learn' ? 'learn' : 'challenge';
+    }
+
+    function toggleMusic() {
+      musicEnabled = !musicEnabled;
+      localStorage.setItem(STORAGE.music, musicEnabled ? 'true' : 'false');
+      if (musicEnabled) {
+        updateMusic();
+        fadeInMusic();
+      } else {
+        fadeOutMusic(() => {
+          if (currentMusic) currentMusic.pause();
+        });
+      }
+      toast(musicEnabled ? '背景音乐已开启' : '背景音乐已关闭');
+    }
+
+    function clampVolume(value) {
+      return Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0));
+    }
+
+    function fadeInMusic() {
+      if (!currentMusic) return;
+      const audio = currentMusic;
+      const token = ++musicFadeToken;
+      musicFading = true;
+      audio.volume = 0;
+      const targetVolume = 0.28;
+      const duration = 1500;
+      const startTime = performance.now();
+      function animate(currentTime) {
+        if (token !== musicFadeToken || audio !== currentMusic) return;
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        audio.volume = clampVolume(targetVolume * progress);
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          musicFading = false;
+        }
+      }
+      requestAnimationFrame(animate);
+    }
+
+    function fadeOutMusic(callback) {
+      if (!currentMusic) {
+        if (callback) callback();
+        return;
+      }
+      const audio = currentMusic;
+      const token = ++musicFadeToken;
+      musicFading = true;
+      const startVolume = audio.volume;
+      const duration = 1200;
+      const startTime = performance.now();
+      function animate(currentTime) {
+        if (token !== musicFadeToken || audio !== currentMusic) return;
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        audio.volume = clampVolume(startVolume * (1 - progress));
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          musicFading = false;
+          if (callback) callback();
+        }
+      }
+      requestAnimationFrame(animate);
+    }
+
+    let musicFading = false;
+    let musicFadeToken = 0;
+
+    function updateMusic(preferredKey) {
+      syncAudioAvailability();
+      updateMusicButton();
+      if (!musicEnabled || globalMuted) {
+        if (currentMusic) currentMusic.pause();
+        return;
+      }
+      const key = getMusicKey(preferredKey);
+      if (currentMusic && currentMusicKey === key) {
+        currentMusic.play().catch(() => updateMusicButton('点击开启'));
+        if (currentMusic.volume < 0.24) fadeInMusic();
+        return;
+      }
+      if (currentMusic) currentMusic.pause();
+      currentMusicKey = key;
+      currentMusic = new Audio(MUSIC[key]);
+      currentMusic.loop = true;
+      currentMusic.volume = 0;
+      currentMusic.addEventListener('timeupdate', handleMusicLoop);
+      currentMusic.play().catch(() => {
+        updateMusicButton('点击开启');
+      });
+      fadeInMusic();
+    }
+
+    function handleMusicLoop() {
+      if (!currentMusic || currentMusic.duration === 0) return;
+      const timeLeft = currentMusic.duration - currentMusic.currentTime;
+      if (timeLeft < 2 && timeLeft > 0 && !musicFading) {
+        fadeOutMusic();
+      }
+    }
+
+    function updateMusicButton(note) {
+      const btn = document.getElementById('musicToggleBtn');
+      const label = document.getElementById('musicLabel');
+      if (!btn) return;
+      btn.classList.toggle('is-on', musicEnabled && !globalMuted);
+      btn.classList.toggle('is-off', !musicEnabled || globalMuted);
+      if (label) label.textContent = note || (globalMuted ? '已静音' : (musicEnabled ? '开启' : '关闭'));
+      const status = document.getElementById('audioStatus');
+      if (status) status.textContent = (globalMuted ? '静' : (musicEnabled ? '开' : '关'));
+    }
+
+    function toggleAudioPanel() {
+      const panel = document.getElementById('audioPanelExpand');
+      if (!panel) return;
+      const isExpanded = panel.classList.contains('show');
+      panel.classList.toggle('show', !isExpanded);
+      localStorage.setItem(STORAGE.audioPanelExpanded, !isExpanded ? 'true' : 'false');
+    }
+
+    function initAudioPanel() {
+      const shouldExpand = localStorage.getItem(STORAGE.audioPanelExpanded) === 'true';
+      const panel = document.getElementById('audioPanelExpand');
+      if (panel && shouldExpand) {
+        panel.classList.add('show');
+      }
+      autoPlayVoiceEnabled = localStorage.getItem(STORAGE.autoPlayVoice) !== 'false';
+      const autoPlayCheckbox = document.getElementById('autoPlayVoice');
+      if (autoPlayCheckbox) autoPlayCheckbox.checked = autoPlayVoiceEnabled;
+    }
+
+    function toggleGlobalMute() {
+      globalMuted = !globalMuted;
+      const btn = document.getElementById('globalMuteBtn');
+      if (btn) {
+        btn.classList.toggle('muted', globalMuted);
+        btn.textContent = globalMuted ? '🔊 取消静音' : '🔇 全局静音';
+      }
+      if (globalMuted) {
+        if (currentMusic) { currentMusic.pause(); }
+        if (currentVoice) { currentVoice.pause(); }
+        toast('已开启全局静音');
+      } else {
+        updateMusic();
+        toast('已关闭全局静音');
+      }
+      updateMusicButton();
+    }
+
+    function toggleAutoPlayVoice() {
+      autoPlayVoiceEnabled = !autoPlayVoiceEnabled;
+      localStorage.setItem(STORAGE.autoPlayVoice, autoPlayVoiceEnabled ? 'true' : 'false');
+      toast(autoPlayVoiceEnabled ? '旁白自动播放已开启' : '旁白自动播放已关闭');
+    }
+
+    let voiceFading = false;
+
+    function fadeInVoice() {
+      if (!currentVoice || voiceFading || globalMuted) return;
+      voiceFading = true;
+      const targetVolume = 0.82;
+      const duration = 1000;
+      const startTime = performance.now();
+
+      function animate(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeProgress = 1 - Math.pow(1 - progress, 3);
+        currentVoice.volume = clampVolume(targetVolume * easeProgress);
+        if (progress < 1) requestAnimationFrame(animate);
+        else voiceFading = false;
+      }
+      requestAnimationFrame(animate);
+    }
+
+    function fadeOutVoice(callback) {
+      if (!currentVoice) { if (callback) callback(); return; }
+      voiceFading = true;
+      const startVolume = currentVoice.volume;
+      const duration = 1000;
+      const startTime = performance.now();
+
+      function animate(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeProgress = progress * progress * (2 - progress);
+        currentVoice.volume = clampVolume(startVolume * (1 - easeProgress));
+        if (progress < 1) requestAnimationFrame(animate);
+        else {
+          voiceFading = false;
+          currentVoice.pause();
+          currentVoice.currentTime = 0;
+          if (callback) callback();
+        }
+      }
+      requestAnimationFrame(animate);
+    }
+
+    function loadAndPlayNewVoice(meta, key) {
+      currentVoiceKey = key;
+      currentVoice = new Audio(meta.src);
+      currentVoice.volume = 0;
+      currentVoice.playbackRate = voiceSpeed;
+      if (globalMuted) currentVoice.volume = 0;
+
+      currentVoice.addEventListener('ended', () => updateVoiceState('已播放'));
+      currentVoice.play().catch(() => updateVoiceState('播放失败'));
+      updateVoiceState('播放中');
+
+      if (!globalMuted) fadeInVoice();
+    }
+
+    function unlockAudio() {
+      audioUnlocked = true;
+    }
+
+    function resumeDefaultAudio(preferredKey) {
+      unlockAudio();
+      if (musicEnabled && !globalMuted) updateMusic(preferredKey);
+    }
+
+    function playVoice(key) {
+      playVoiceByKey(key);
+    }
+
+    function playVoiceByKey(key) {
+      if (!canUseVoiceKey(key)) return;
+      unlockAudio();
+      const meta = getVoiceMeta(key);
+      if (!meta) return;
+      try {
+        if (currentVoiceKey === key && currentVoice && !currentVoice.paused) return;
+
+        if (currentVoice && !currentVoice.paused) {
+          fadeOutVoice(() => loadAndPlayNewVoice(meta, key));
+        } else {
+          loadAndPlayNewVoice(meta, key);
+        }
+      } catch (e) { console.error('播放旁白失败:', e); }
+    }
+
+    function playVoiceOnce(key) {
+      if (!canUseVoiceKey(key)) return;
+      ensureState();
+      if (state.playedVoices.includes(key)) return;
+      state.playedVoices.push(key);
+      saveState();
+      playVoiceByKey(key);
+    }
+
+    function setVoiceSpeed(speed) {
+      voiceSpeed = speed;
+      localStorage.setItem(STORAGE.voiceSpeed, String(speed));
+      if (currentVoice && !currentVoice.paused) {
+        try {
+          currentVoice.playbackRate = speed;
+        } catch (e) { console.warn('倍速调整失败:', e); }
+      }
+      syncAllSpeedSelectors(speed);
+    }
+
+    function syncAllSpeedSelectors(speed) {
+      const selectors = ['voiceSpeedSelect', 'voiceSpeedSelect2'];
+      selectors.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = speed;
+      });
+    }
+
+    function playLevelVoice(id) {
+      const key = 'level:' + id;
+      if (!canUseVoiceKey(key) || !autoPlayVoiceEnabled || !audioUnlocked || lastLevelVoice === id) return;
+      const meta = getVoiceMeta(key);
+      if (!meta) return;
+      lastLevelVoice = id;
+      playVoiceByKey(key);
+    }
+
+    function pauseVoice() {
+      playSound('close');
+      if (currentVoice) currentVoice.pause();
+      updateVoiceState('已暂停');
+    }
+
+    function updateVoiceState(text) {
+      const el = document.getElementById('voiceState');
+      if (el) el.textContent = text;
+    }
+
+    function bindHoverSound() {
+      document.querySelectorAll('.sfx-hover').forEach(el => {
+        if (el.dataset.hoverBound) return;
+        el.dataset.hoverBound = '1';
+        el.addEventListener('mouseenter', () => playSound('hover'));
+      });
+    }
+
+    function bindRailDrawer() {
+      const rail = document.querySelector('.left-rail');
+      const mainLayout = document.querySelector('.main-layout');
+
+      if (!rail || rail.dataset.drawerBound) return;
+      rail.dataset.drawerBound = '1';
+
+      rail.addEventListener('mouseenter', () => {
+        rail.classList.add('rail-preview');
+        rail.classList.remove('rail-collapsed');
+        if (mainLayout) {
+          mainLayout.classList.add('rail-preview');
+          mainLayout.classList.remove('rail-collapsed');
+        }
+      });
+
+      rail.addEventListener('mouseleave', () => {
+        if (!rail.classList.contains('rail-locked')) {
+          rail.classList.remove('rail-preview', 'rail-expanded', 'rail-locked');
+          rail.classList.add('rail-collapsed');
+          if (mainLayout) {
+            mainLayout.classList.remove('rail-preview', 'rail-expanded');
+            mainLayout.classList.add('rail-collapsed');
+          }
+        } else {
+          rail.classList.remove('rail-preview');
+          rail.classList.add('rail-expanded');
+        }
+      });
+
+      rail.addEventListener('focusin', () => {
+        if (rail.classList.contains('rail-locked')) return;
+        rail.classList.add('rail-preview');
+        rail.classList.remove('rail-collapsed');
+        if (mainLayout) {
+          mainLayout.classList.add('rail-preview');
+          mainLayout.classList.remove('rail-collapsed');
+        }
+      });
+
+      rail.addEventListener('focusout', () => {
+        setTimeout(() => {
+          if (!rail.contains(document.activeElement) && !rail.classList.contains('rail-locked')) {
+            rail.classList.remove('rail-preview', 'rail-expanded');
+            rail.classList.add('rail-collapsed');
+            if (mainLayout) {
+              mainLayout.classList.remove('rail-preview', 'rail-expanded');
+              mainLayout.classList.add('rail-collapsed');
+            }
+          }
+        }, 0);
+      });
+
+      rail.classList.add('rail-collapsed');
+      if (mainLayout) mainLayout.classList.add('rail-collapsed');
+    }
+
+    function toggleRailLock() {
+      const rail = document.querySelector('.left-rail');
+      const mainLayout = document.querySelector('.main-layout');
+      if (!rail) return;
+
+      if (rail.classList.contains('rail-locked')) {
+        rail.classList.remove('rail-locked', 'rail-expanded', 'rail-preview');
+        if (mainLayout) mainLayout.classList.remove('rail-expanded', 'rail-preview');
+        toast('侧边栏已解锁');
+      } else {
+        rail.classList.add('rail-locked', 'rail-expanded');
+        rail.classList.remove('rail-preview');
+        if (mainLayout) {
+          mainLayout.classList.add('rail-expanded');
+          mainLayout.classList.remove('rail-preview');
+        }
+        toast('侧边栏已锁定');
+      }
+    }
+
+    function toast(text) {
+      const box = document.getElementById('toast');
+      const div = document.createElement('div');
+      div.className = 'toast-item';
+      div.textContent = text;
+      box.appendChild(div);
+      setTimeout(() => div.remove(), 3200);
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    document.addEventListener('pointerdown', () => {
+      resumeDefaultAudio();
+    }, true);
+
+    document.addEventListener('click', e => {
+      resumeDefaultAudio();
+      if (e.target.closest('button, .level-node')) playSound('click');
+    }, true);
+
+    function showKeyGuidePopup(e) {
+      if (e) e.stopPropagation();
+      const popup = document.getElementById('keyGuidePopup');
+      if (popup) {
+        const anchor = e?.currentTarget || document.querySelector('.hint-icon-btn');
+        popup.classList.remove('from-left');
+        popup.classList.add('is-visible');
+        if (anchor) {
+          const rect = anchor.getBoundingClientRect();
+          const margin = 14;
+          const popupWidth = Math.min(360, window.innerWidth - margin * 2);
+          popup.style.width = popupWidth + 'px';
+          let left = rect.right + 10;
+          const placeLeft = left + popupWidth > window.innerWidth - margin;
+          if (placeLeft) {
+            left = Math.max(margin, rect.left - popupWidth - 10);
+            popup.classList.add('from-left');
+          }
+          const height = popup.offsetHeight;
+          const top = Math.max(margin, Math.min(rect.top + rect.height / 2 - height / 2, window.innerHeight - height - margin));
+          popup.style.setProperty('--key-popup-left', left + 'px');
+          popup.style.setProperty('--key-popup-top', top + 'px');
+        }
+      }
+    }
+
+    function hideKeyGuidePopup() {
+      const popup = document.getElementById('keyGuidePopup');
+      if (popup) {
+        popup.classList.remove('is-visible');
+      }
+    }
+
+    document.addEventListener('click', (e) => {
+      const popup = document.getElementById('keyGuidePopup');
+      if (popup && popup.classList.contains('is-visible')) {
+        if (!popup.contains(e.target) && !e.target.closest('.hint-icon-btn')) {
+          hideKeyGuidePopup();
+        }
+      }
+    });
+
+    loadState();
+    bindHoverSound();
+    initAudioPanel();
+  </script>
+</body>
+</html>
